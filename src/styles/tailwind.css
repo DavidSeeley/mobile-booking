@@ -1,0 +1,535 @@
+/**
+ * =========================================================================
+ * Tailwind CSS v4 Configuration
+ * =========================================================================
+ * This file configures Tailwind CSS v4 with custom sources, plugins,
+ * and additional utilities. It serves as the foundation for the utility-first
+ * CSS framework used throughout the application.
+ * 
+ * Features:
+ * - Automatic scanning of all TypeScript/JavaScript/JSX/TSX files
+ * - tw-animate-css plugin for advanced animations
+ * - Custom scale utilities for hover effects
+ * - Full integration with theme.css design tokens
+ * =========================================================================
+ */
+
+/* ========================================================================
+ * TAILWIND BASE IMPORT
+ * ========================================================================
+ * Import Tailwind CSS with source(none) to prevent auto-scanning
+ * We manually specify sources below for better control
+ * ======================================================================== */
+@import 'tailwindcss' source(none);
+
+/* ========================================================================
+ * SOURCE CONFIGURATION
+ * ========================================================================
+ * Specify which files Tailwind should scan for class names
+ * This ensures all components and pages are included
+ * ======================================================================== */
+@source '../**/*.{js,ts,jsx,tsx}';
+
+/* ========================================================================
+ * PLUGINS
+ * ========================================================================
+ * Import third-party Tailwind plugins for extended functionality
+ * ======================================================================== */
+@import 'tw-animate-css';
+
+/* ========================================================================
+ * CUSTOM SCALE UTILITIES
+ * ========================================================================
+ * Define custom scale values for hover effects used throughout the app
+ * Usage: hover:scale-110, hover:scale-130
+ * ======================================================================== */
+@theme {
+  --scale-110: 1.10;
+  --scale-130: 1.30;
+}
+
+/* ========================================================================
+ * CUSTOM UTILITIES
+ * ========================================================================
+ * Additional utility classes that extend Tailwind's defaults
+ * ======================================================================== */
+
+@layer utilities {
+  /* ======================================================================
+   * Custom Transform Scale Values
+   * ====================================================================== */
+  .scale-110 {
+    transform: scale(1.10);
+  }
+
+  .scale-130 {
+    transform: scale(1.30);
+  }
+
+  .hover\:scale-110:hover {
+    transform: scale(1.10);
+  }
+
+  .hover\:scale-130:hover {
+    transform: scale(1.30);
+  }
+
+  /* ======================================================================
+   * Icon Hover Effects (Applied to all icons - scale-130)
+   * ====================================================================== */
+  svg.icon-hover,
+  [class*="lucide"].icon-hover {
+    @apply transition-transform duration-200 cursor-pointer;
+  }
+
+  svg.icon-hover:hover,
+  [class*="lucide"].icon-hover:hover {
+    transform: scale(1.30);
+  }
+
+  /* Global icon hover effect for all SVG icons */
+  .icon-container svg {
+    @apply transition-transform duration-200;
+  }
+
+  .icon-container:hover svg {
+    transform: scale(1.30);
+  }
+
+  /* ======================================================================
+   * Link/Anchor Hover Effects (Applied to text links - scale-110)
+   * ====================================================================== */
+  a.link-hover {
+    @apply transition-transform duration-200 inline-block no-underline;
+  }
+
+  a.link-hover:hover {
+    transform: scale(1.10);
+  }
+
+  /* Ensure inline-block for transform to work on anchors */
+  a[class*="hover:scale-110"] {
+    display: inline-block;
+  }
+
+  /* Remove underline conflicts with scale transforms */
+  .no-underline {
+    text-decoration: none !important;
+  }
+
+  /* Prevent hover:underline on scale elements (causes layout shift) */
+  [class*="hover:scale-"].hover\:underline:hover {
+    text-decoration: none;
+  }
+
+  /* ======================================================================
+   * Text Balance (Better text wrapping)
+   * ====================================================================== */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* ======================================================================
+   * Smooth Scroll
+   * ====================================================================== */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+
+  /* ======================================================================
+   * Hide Scrollbar (but keep functionality)
+   * ====================================================================== */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ======================================================================
+   * Thin Scrollbar
+   * ====================================================================== */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  /* ======================================================================
+   * Content Visibility (Performance optimization)
+   * ====================================================================== */
+  .content-auto {
+    content-visibility: auto;
+  }
+
+  /* ======================================================================
+   * Contain Paint (Performance optimization)
+   * ====================================================================== */
+  .contain-paint {
+    contain: paint;
+  }
+
+  .contain-layout {
+    contain: layout;
+  }
+
+  .contain-content {
+    contain: content;
+  }
+
+  /* ======================================================================
+   * GPU Acceleration Hint
+   * ====================================================================== */
+  .gpu-accelerate {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  /* ======================================================================
+   * Aspect Ratio Utilities
+   * ======================================================================
+   * aspect-square and aspect-video are Tailwind v4 built-ins — removed.
+   * aspect-4-3 is retained as it has no Tailwind equivalent. */
+  .aspect-4-3 {
+    aspect-ratio: 4 / 3;
+  }
+
+  /* ======================================================================
+   * Safe Area Insets (for mobile notches/cutouts)
+   * ====================================================================== */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* ======================================================================
+   * Touch Action Utilities
+   * ====================================================================== */
+  .touch-pan-x {
+    touch-action: pan-x;
+  }
+
+  .touch-pan-y {
+    touch-action: pan-y;
+  }
+
+  .touch-pinch-zoom {
+    touch-action: pinch-zoom;
+  }
+
+  /* ======================================================================
+   * Backdrop Filter Utilities
+   * ====================================================================== */
+  .backdrop-saturate-150 {
+    backdrop-filter: saturate(1.5);
+  }
+
+  .backdrop-saturate-200 {
+    backdrop-filter: saturate(2);
+  }
+
+  /* ======================================================================
+   * Glass Morphism Effect
+   * ====================================================================== */
+  .glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px) saturate(180%);
+    -webkit-backdrop-filter: blur(10px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .dark .glass {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* ======================================================================
+   * Gradient Text Effect
+   * ====================================================================== */
+  .text-gradient {
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .text-gradient-blue {
+    background-image: linear-gradient(to right, var(--blue-400), var(--blue-500));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* ======================================================================
+   * Focus States (Enhanced accessibility)
+   * ====================================================================== */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+  }
+
+  .focus-ring-inset {
+    @apply focus:outline-none focus:ring-2 focus:ring-inset focus:ring-ring;
+  }
+}
+
+/* ========================================================================
+ * COMPONENT VARIANTS
+ * ========================================================================
+ * Custom variants for conditional styling
+ * ======================================================================== */
+
+@layer utilities {
+  /* ======================================================================
+   * Group Hover Utilities
+   * ====================================================================== */
+  .group:hover .group-hover\:scale-110 {
+    transform: scale(1.10);
+  }
+
+  .group:hover .group-hover\:scale-130 {
+    transform: scale(1.30);
+  }
+
+  .group:hover .group-hover\:opacity-100 {
+    opacity: 1;
+  }
+
+  /* ======================================================================
+   * Peer State Utilities
+   * ======================================================================
+   * NOTE: peer:checked and peer:focus variants are Tailwind v4 built-ins.
+   * Removed manual implementations — use Tailwind's peer-checked:* and
+   * peer-focus:* variant prefixes directly in JSX instead.
+   * ====================================================================== */
+
+  /* ======================================================================
+   * Data Attribute States
+   * ======================================================================
+   * ⚠️  GLOBAL RULE — applies slideInFromTop / fadeOut to EVERY element
+   * that carries [data-state="open"] or [data-state="closed"], including
+   * all Radix UI portals (Popover, Dialog, Select, Tooltip, etc.).
+   *
+   * Per-component overrides (e.g. .date-picker-content in index.css) beat
+   * this rule via higher specificity. If a new Radix component shows an
+   * unexpected animation, add a targeted override in index.css rather than
+   * removing this block.
+   * ====================================================================== */
+  [data-state="open"] {
+    animation: slideInFromTop 300ms ease-out;
+  }
+
+  [data-state="closed"] {
+    animation: fadeOut 200ms ease-in-out;
+  }
+
+  [data-state="active"] .data-active\:bg-accent {
+    background-color: var(--accent);
+  }
+
+  [data-state="inactive"] .data-inactive\:opacity-50 {
+    opacity: 0.5;
+  }
+}
+
+/* ========================================================================
+ * RESPONSIVE DESIGN HELPERS
+ * ======================================================================== */
+
+@layer utilities {
+  /* Container Queries (modern responsive design) */
+  @container (min-width: 640px) {
+    .container-sm\:text-lg {
+      font-size: var(--text-lg);
+    }
+  }
+
+  @container (min-width: 768px) {
+    .container-md\:grid-cols-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @container (min-width: 1024px) {
+    .container-lg\:grid-cols-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+}
+
+/* ========================================================================
+ * PERFORMANCE OPTIMIZATIONS
+ * ======================================================================== */
+
+@layer utilities {
+  /* ======================================================================
+   * Hardware Acceleration
+   * ====================================================================== */
+  .will-change-transform {
+    will-change: transform;
+  }
+
+  .will-change-opacity {
+    will-change: opacity;
+  }
+
+  .will-change-scroll {
+    will-change: scroll-position;
+  }
+
+  /* ======================================================================
+   * Layer Promotion
+   * ====================================================================== */
+  .layer-promote {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+}
+
+/* ========================================================================
+ * DEBUGGING UTILITIES
+ * ========================================================================
+ * Helpful classes for development and debugging
+ * ======================================================================== */
+
+@layer utilities {
+  /* ======================================================================
+   * Debug Borders (colorful outlines for layout debugging)
+   * ====================================================================== */
+  .debug {
+    outline: 2px solid red !important;
+  }
+
+  .debug-children > * {
+    outline: 1px solid blue !important;
+  }
+
+  .debug-children > * > * {
+    outline: 1px solid green !important;
+  }
+
+  /* ======================================================================
+   * Show Grid Overlay (for alignment debugging)
+   * ====================================================================== */
+  .debug-grid {
+    background-image: 
+      repeating-linear-gradient(0deg, rgba(255,0,0,0.1) 0px, transparent 1px, transparent 8px, rgba(255,0,0,0.1) 8px),
+      repeating-linear-gradient(90deg, rgba(255,0,0,0.1) 0px, transparent 1px, transparent 8px, rgba(255,0,0,0.1) 8px);
+  }
+}
+
+/* ========================================================================
+ * ACCESSIBILITY ENHANCEMENTS
+ * ======================================================================== */
+
+@layer base {
+  /* ======================================================================
+   * Reduced Motion Support
+   * ====================================================================== */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* ======================================================================
+   * Focus Visible (keyboard navigation)
+   * ====================================================================== */
+  *:focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  *:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* ======================================================================
+   * Skip to Content Link (for keyboard users)
+   * ====================================================================== */
+  .skip-to-content {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--primary);
+    color: var(--primary-foreground);
+    padding: 8px;
+    text-decoration: none;
+    z-index: var(--z-tooltip);
+  }
+
+  .skip-to-content:focus {
+    top: 0;
+  }
+}
+
+/* ========================================================================
+ * BROWSER-SPECIFIC FIXES
+ * ======================================================================== */
+
+@layer base {
+  /* ======================================================================
+   * Safari Input Zoom Fix (prevent zoom on focus)
+   * ====================================================================== */
+  @supports (-webkit-touch-callout: none) {
+    input,
+    select,
+    textarea {
+      font-size: max(16px, 1rem);
+    }
+  }
+
+  /* ======================================================================
+   * Firefox Input Fixes
+   * ====================================================================== */
+  @-moz-document url-prefix() {
+    input[type="date"],
+    input[type="time"] {
+      appearance: none;
+    }
+  }
+
+  /* ======================================================================
+   * iOS/Safari Specific Fixes
+   * ====================================================================== */
+  input[type="search"]::-webkit-search-decoration,
+  input[type="search"]::-webkit-search-cancel-button,
+  input[type="search"]::-webkit-search-results-button,
+  input[type="search"]::-webkit-search-results-decoration {
+    display: none;
+  }
+
+  /* Remove iOS input shadow */
+  input,
+  textarea,
+  select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+
+  /* Prevent iOS text size adjustment */
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+}

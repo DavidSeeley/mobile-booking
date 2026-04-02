@@ -1,0 +1,2446 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+@import './error-boundary.css';
+@import './loading.css';
+
+/* =============================================================================
+ * Main Stylesheet — Global Styles & Custom Components
+ * =============================================================================
+ * Import order:
+ *   1. Tailwind CSS  2. Fonts  3. Theme tokens  4. This file
+ *
+ * Layer order (lowest → highest specificity for normal rules):
+ *   @layer base  <  @layer components  <  @layer utilities  <  unlayered
+ *
+ * !important reverses layer priority (Cascade L5):
+ *   unlayered  <  @layer utilities  <  @layer components  <  @layer base
+ * → unlayered !important rules WIN over everything. That is why the
+ *   SEARCH MODAL FIELD OVERRIDES block lives at the very end of this file
+ *   as unlayered !important and must NEVER be moved inside a @layer.
+ *
+ * =============================================================================
+ * HOVER SYSTEM QUICK REFERENCE
+ * =============================================================================
+ * Icons   → scale(1.30)  class: .icon-hover  or  hover:scale-130
+ * Links   → scale(1.10)  class: .link-text / .table-cell-link / .anchor-link
+ *
+ * Rules:
+ *  - Always pair scale effects with no-underline (avoids layout shift)
+ *  - Anchors need inline-block for transform to apply
+ *  - Never combine hover:underline with hover:scale-*
+ * =============================================================================
+ */
+
+/* =============================================================================
+ * GLOBAL BASE
+ * =============================================================================
+ * scrollbar-gutter: stable keeps layout stable when Radix portals open.
+ * Modal components (e.g. SearchPopForm) lock body scroll directly so Radix
+ * Select's margin compensation is never triggered.
+ * ============================================================================= */
+html {
+  scrollbar-gutter: stable;
+}
+
+/* =============================================================================
+ * COMPONENT CLASSES
+ * ============================================================================= */
+@layer components {
+
+  /* ---------------------------------------------------------------------------
+   * ERROR BOUNDARY FALLBACK
+   * --------------------------------------------------------------------------- */
+  .error-boundary-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: var(--background);
+    padding: 2rem;
+  }
+
+  .error-boundary-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem 2rem;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .error-boundary-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .error-boundary-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin-bottom: 0.5rem;
+  }
+
+  .error-boundary-body {
+    font-size: 0.9375rem;
+    color: var(--muted-foreground);
+    margin-bottom: 0.75rem;
+  }
+
+  .error-boundary-detail {
+    font-size: 0.8125rem;
+    color: var(--muted-foreground);
+    font-family: ui-monospace, monospace;
+    background: var(--muted);
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 1.5rem;
+    word-break: break-word;
+  }
+
+  .error-boundary-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .error-boundary-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1.25rem;
+    border-radius: var(--radius-md);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: opacity var(--transition-fast) var(--ease-out);
+  }
+
+  .error-boundary-btn:hover {
+    opacity: 0.85;
+  }
+
+  .error-boundary-btn--primary {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+  }
+
+  .error-boundary-btn--secondary {
+    background-color: transparent;
+    border-color: var(--border);
+    color: var(--foreground);
+  }
+
+  /* ---------------------------------------------------------------------------
+   * FORM COMPONENTS — minimal bottom-border-only design
+   * --------------------------------------------------------------------------- */
+
+  .floating-input {
+    @apply flex h-12 w-full border-0 border-b border-border rounded-none bg-transparent;
+    @apply px-0 pt-5 pb-1 text-xs text-foreground;
+    @apply transition-colors duration-200;
+    @apply placeholder:text-transparent;
+    @apply focus-visible:outline-none focus-visible:ring-0 focus-visible:border-b-blue-400;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .floating-label {
+    @apply absolute left-0 transition-all duration-200 pointer-events-none;
+    @apply text-xs text-muted-foreground;
+  }
+
+  .floating-label-focused  { @apply text-blue-400; }
+  .floating-label-floating { @apply top-0 text-xs; }
+  .floating-label-default  { @apply top-1/2 -translate-y-1/2 text-xs; }
+
+  .input-minimal {
+    @apply w-full border-0 border-b border-border bg-transparent;
+    @apply px-0 py-2 text-sm text-foreground;
+    @apply transition-colors duration-200;
+    @apply focus:outline-none focus:ring-0 focus:border-b-blue-400;
+    @apply placeholder:text-muted-foreground;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .date-input {
+    @apply w-full border-0 border-b border-border bg-transparent;
+    @apply px-0 py-2 text-xs;
+    @apply transition-colors duration-200;
+    @apply focus:outline-none focus:ring-0 focus:border-b-blue-400;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  /* Value/empty colour hierarchy for native date inputs */
+  .date-input[value]:not([value=""])    { @apply text-slate-500; }
+  .date-input:not([value]),
+  .date-input[value=""]                 { @apply text-muted-foreground; }
+
+  .select-minimal {
+    @apply w-full border-0 border-b border-border bg-transparent;
+    @apply px-0 py-2 text-sm text-foreground;
+    @apply transition-colors duration-200;
+    @apply focus:outline-none focus:ring-0 focus:border-b-blue-400;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .textarea-minimal {
+    @apply w-full border-0 border-b border-border bg-transparent;
+    @apply px-0 py-2 text-sm text-foreground;
+    @apply transition-colors duration-200;
+    @apply focus:outline-none focus:ring-0 focus:border-b-blue-400;
+    @apply placeholder:text-muted-foreground resize-none;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .form-label  { @apply text-sm text-muted-foreground font-medium mb-1 block; }
+  .form-error  { @apply text-xs text-destructive mt-1 block; }
+  .form-helper { @apply text-xs text-muted-foreground mt-1 block; }
+
+  /* Date Picker Popover — neutralise zoom/slide animation from base Popover */
+  .date-picker-content {
+    --tw-enter-scale: 1;
+    --tw-exit-scale: 1;
+    --tw-enter-translate-y: 0;
+    --tw-exit-translate-y: 0;
+    animation-duration: 140ms;
+    animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  .date-picker-content[data-state="closed"] {
+    animation-duration: 110ms;
+    animation-timing-function: cubic-bezier(0.55, 0.06, 0.68, 0.19);
+  }
+
+  /* ---------------------------------------------------------------------------
+   * VISIBILITY DROPDOWN — extra-small font for all text inside the popover
+   * --------------------------------------------------------------------------- */
+  .visibility-dropdown,
+  .visibility-dropdown label,
+  .visibility-dropdown button,
+  .visibility-dropdown span {
+    font-size: 0.6875rem !important; /* 11px */
+  }
+
+  /* ── Global field border reset ─────────────────────────────────────────────
+   * Strips top / left / right borders from every field type.
+   * box-shadow intentionally omitted from !important so the unlayered
+   * search-modal override (at EOF) can win for modal fields only.
+   * ── */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="range"]):not([type="color"]):not([type="file"]):not(.contact-info-field),
+  textarea,
+  [data-slot="select-trigger"],
+  [role="combobox"],
+  .date-picker-trigger {
+    border-top:    none !important;
+    border-left:   none !important;
+    border-right:  none !important;
+    border-radius: 0    !important;
+    outline:       none !important;
+    box-shadow:    none; /* ← no !important — see cascade note in file header */
+  }
+
+  /* ── Contact info field — full box border + 15px radius ────────────────────
+   * Excluded from the global reset above via :not(.contact-info-field).
+   * No !important needed — the reset no longer targets these inputs.
+   * ── */
+  .contact-info-field {
+    border-radius: 15px;
+    background-color: white !important;
+    height: 40px !important;
+    padding: 0 12px !important;
+    margin-bottom: 16px !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  /* Override browser autocomplete styling for contact info fields */
+  .contact-info-field:-webkit-autofill,
+  .contact-info-field:-webkit-autofill:hover,
+  .contact-info-field:-webkit-autofill:focus,
+  .contact-info-field:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px white inset !important;
+    box-shadow: 0 0 0 1000px white inset !important;
+    -webkit-text-fill-color: #64748b !important;
+    background-color: white !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+  
+  /* Center the floating labels vertically for contact info fields */
+  .contact-info-field.peer:placeholder-shown + label {
+    top: 50% !important;
+  }
+
+  /* ---------------------------------------------------------------------------
+   * SEARCH MODAL — clean white card, blue gradient header (matches Search List)
+   * --------------------------------------------------------------------------- */
+
+  .search-modal-backdrop {
+    background: rgba(0, 0, 0, 0.40);
+  }
+
+  .search-modal {
+    border-radius: 8px;
+    overflow: hidden;
+    background: white !important;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow:
+      0 20px 60px rgba(0, 0, 0, 0.15),
+      0  8px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Header — blue gradient provided by the component's inline backgroundImage style */
+  .search-modal-header {
+    border-radius: 7px 7px 0 0;
+    color: white !important;
+  }
+
+  /* Force all header children to white — overrides any text-* Tailwind class */
+  .search-modal-header h1,
+  .search-modal-header h2,
+  .search-modal-header h3,
+  .search-modal-header h4,
+  .search-modal-header p,
+  .search-modal-header span {
+    color: white !important;
+  }
+
+  /* Header title typography */
+  .search-modal-header h2 {
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  /* Lock all three field types to 12px */
+  .search-modal input,
+  .search-modal [data-slot="select-trigger"],
+  .search-modal .date-picker-trigger {
+    font-size: 0.75rem !important;
+  }
+
+  /* Close (×) icon */
+  .search-modal-header button svg {
+    color: white !important;
+  }
+
+  /* ── Footer buttons ─────────────────────────────────────────────────────── */
+  .search-modal [aria-label="Clear all filters"],
+  .search-modal [aria-label="Apply search filters"] {
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    transition: background 140ms ease !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+  }
+
+  /* Clear All — outlined */
+  .search-modal [aria-label="Clear all filters"] {
+    background: white !important;
+    color: var(--slate-500) !important;
+    border: 1px solid var(--border) !important;
+  }
+  .search-modal [aria-label="Clear all filters"]:hover {
+    background: var(--slate-50) !important;
+  }
+
+  /* Search — solid blue-400 */
+  .search-modal [aria-label="Apply search filters"] {
+    background: var(--blue-400) !important;
+    color: white !important;
+    border: 1px solid transparent !important;
+  }
+  .search-modal [aria-label="Apply search filters"]:hover {
+    background: var(--blue-500) !important;
+  }
+
+  /* ── Upload modal buttons ───────────────────────────────────────────────── */
+  .search-modal [aria-label="Cancel upload"],
+  .search-modal [aria-label="Upload CSV"] {
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    transition: background 140ms ease !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+  }
+
+  .search-modal [aria-label="Cancel upload"] {
+    background: white !important;
+    color: var(--slate-500) !important;
+    border: 1px solid var(--border) !important;
+  }
+  .search-modal [aria-label="Cancel upload"]:hover {
+    background: var(--slate-50) !important;
+  }
+
+  .search-modal [aria-label="Upload CSV"] {
+    background: var(--blue-400) !important;
+    color: white !important;
+    border: 1px solid transparent !important;
+  }
+  .search-modal [aria-label="Upload CSV"]:hover {
+    background: var(--blue-500) !important;
+  }
+  .search-modal [aria-label="Upload CSV"]:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+  }
+
+  /* ── Transfer modal buttons ─────────────────────────────────────────────── */
+  .search-modal [aria-label="Apply transfer"],
+  .search-modal [aria-label="Confirm no"],
+  .search-modal [aria-label="Confirm yes"] {
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    transition: background 140ms ease !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+  }
+
+  .search-modal [aria-label="Apply transfer"],
+  .search-modal [aria-label="Confirm yes"] {
+    background: var(--blue-400) !important;
+    color: white !important;
+    border: 1px solid transparent !important;
+  }
+  .search-modal [aria-label="Apply transfer"]:hover,
+  .search-modal [aria-label="Confirm yes"]:hover {
+    background: var(--blue-500) !important;
+  }
+
+  .search-modal [aria-label="Confirm no"] {
+    background: white !important;
+    color: var(--slate-500) !important;
+    border: 1px solid var(--border) !important;
+  }
+  .search-modal [aria-label="Confirm no"]:hover {
+    background: var(--slate-50) !important;
+  }
+
+  /* ---------------------------------------------------------------------------
+   * SELECT DROPDOWN COMPONENTS (Radix UI)
+   * --------------------------------------------------------------------------- */
+
+  [data-slot="select-content"] {
+    background-color: var(--background);
+    border-color: var(--gray-200);
+  }
+
+  [data-slot="select-trigger"] {
+    font-size: 0.75rem; /* matches FloatingInput */
+  }
+
+  [data-slot="select-value"] {
+    color: var(--slate-500);
+  }
+
+  [data-slot="select-item"] {
+    color: var(--foreground);
+    font-size: 0.75rem;
+    transition: background-color 200ms, color 200ms;
+  }
+
+  [data-slot="select-item"]:hover,
+  [data-slot="select-item"][data-highlighted],
+  [data-slot="select-item"]:focus,
+  [data-slot="select-item"][data-state="checked"] {
+    background-color: var(--slate-50);
+    color: var(--foreground);
+  }
+
+  [data-slot="select-item"] svg,
+  [data-slot="select-item"] [data-radix-select-item-text] {
+    color: var(--foreground);
+  }
+
+  [data-slot="select-label"] {
+    color: var(--muted-foreground);
+    font-size: 0.75rem;
+  }
+
+  [data-slot="select-scroll-up-button"],
+  [data-slot="select-scroll-down-button"] {
+    color: var(--foreground);
+  }
+
+  [data-slot="select-scroll-up-button"]:hover,
+  [data-slot="select-scroll-down-button"]:hover {
+    background-color: var(--slate-50);
+  }
+
+  /* ---------------------------------------------------------------------------
+   * BUTTON COMPONENTS
+   * --------------------------------------------------------------------------- */
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2;
+    @apply px-4 py-2 text-sm font-medium;
+    @apply bg-primary text-primary-foreground;
+    @apply border border-transparent rounded-md;
+    @apply transition-colors duration-200;
+    @apply hover:bg-primary/90;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+    @apply disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2;
+    @apply px-4 py-2 text-sm font-medium;
+    @apply bg-secondary text-secondary-foreground;
+    @apply border border-transparent rounded-md;
+    @apply transition-colors duration-200;
+    @apply hover:bg-secondary/80;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+    @apply disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2;
+    @apply px-4 py-2 text-sm font-medium;
+    @apply bg-transparent text-foreground;
+    @apply border border-transparent rounded-md;
+    @apply transition-colors duration-200;
+    @apply hover:bg-accent hover:text-accent-foreground;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+    @apply disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-destructive {
+    @apply inline-flex items-center justify-center gap-2;
+    @apply px-4 py-2 text-sm font-medium;
+    @apply bg-destructive text-destructive-foreground;
+    @apply border border-transparent rounded-md;
+    @apply transition-colors duration-200;
+    @apply hover:bg-destructive/90;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+    @apply disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-icon {
+    @apply inline-flex items-center justify-center;
+    @apply h-8 w-8 p-0;
+    @apply bg-transparent text-foreground;
+    @apply border border-transparent rounded-md;
+    @apply transition-colors duration-200;
+    @apply hover:bg-accent hover:text-accent-foreground;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+    @apply disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-link {
+    @apply inline-flex items-center justify-center gap-2;
+    @apply px-4 py-2 text-sm font-medium;
+    @apply text-blue-600 underline-offset-4;
+    @apply transition-all duration-200;
+    @apply hover:underline hover:text-blue-800;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+    @apply disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  /* ---------------------------------------------------------------------------
+   * CARD COMPONENTS
+   * --------------------------------------------------------------------------- */
+
+  .card             { @apply bg-card text-card-foreground rounded-lg border border-border shadow-sm; }
+  .card-header      { @apply flex flex-col space-y-1.5 p-6; }
+  .card-title       { @apply text-lg font-medium leading-none tracking-tight; }
+  .card-description { @apply text-sm text-muted-foreground; }
+  .card-content     { @apply p-6 pt-0; }
+  .card-footer      { @apply flex items-center p-6 pt-0; }
+
+  /* Grid Card */
+  .grid-card {
+    @apply bg-white border border-gray-200 overflow-hidden;
+    @apply transition-shadow duration-200 hover:shadow-lg;
+    border-radius: 15px;
+  }
+
+  .grid-card-header {
+    @apply flex items-center justify-between;
+    background: linear-gradient(to bottom, var(--blue-400), var(--blue-300));
+    padding: 0.625rem 1rem;
+  }
+
+  .grid-card-body { @apply p-4; }
+
+  .grid-card-id {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: white;
+    font-weight: 500;
+  }
+
+  .grid-card-field { @apply mb-3; }
+
+  .grid-card-label {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    color: var(--muted-foreground);
+    margin-bottom: 0.25rem;
+    display: block;
+    font-weight: 400;
+  }
+
+  /* .grid-card-value and .grid-card-value-text are functionally equivalent.
+   * Use .grid-card-value-text for new code (more descriptive name). */
+  .grid-card-value,
+  .grid-card-value-text {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    color: var(--slate-700);
+    font-weight: 400;
+  }
+
+  .grid-card-link {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    color: var(--blue-600);
+    text-decoration: none;
+    font-weight: 400;
+    transition: color var(--transition-base), transform var(--transition-base);
+    display: inline-block;
+    cursor: pointer;
+  }
+  .grid-card-link:hover {
+    color: var(--blue-800);
+    transform: scale(1.1);
+  }
+
+  .grid-card-button {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    color: var(--blue-600);
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    transition: color var(--transition-base), transform var(--transition-base);
+    display: inline-block;
+    text-decoration: none;
+    font-weight: 400;
+  }
+  .grid-card-button:hover {
+    color: var(--blue-800);
+    transform: scale(1.1);
+  }
+
+  /* Grid Card Badges */
+  .grid-card-badge {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.25rem;
+    font-weight: 500;
+  }
+  .grid-card-badge-danger   { background-color: color-mix(in srgb, var(--destructive) 15%, white); color: var(--destructive); }
+  .grid-card-badge-warning  { background-color: color-mix(in srgb, var(--warning)     15%, white); color: var(--warning);     }
+  .grid-card-badge-success  { background-color: color-mix(in srgb, var(--success)     15%, white); color: var(--success);     }
+  .grid-card-badge-info     { background-color: color-mix(in srgb, var(--info)        15%, white); color: var(--info);        }
+
+  /* Detail Card — used on detail pages for section containers (Contact, Address, Details, etc.) */
+  .detail-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 0.875rem;
+    margin-bottom: 0.75rem;
+    transition: box-shadow var(--transition-base) var(--ease-out);
+  }
+  .detail-card:hover {
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Quick List Card — sidebar list container with hover shadow effect */
+  .quick-list-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    transition: box-shadow var(--transition-base) var(--ease-out);
+  }
+  .quick-list-card:hover {
+    box-shadow: var(--shadow-lg);
+  }
+  .quick-list-card table {
+    margin: 0;
+    padding: 0;
+  }
+  .quick-list-card thead,
+  .quick-list-card tbody {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* QuickList column header — matches the SectionDivider card header style used on detail pages */
+  .quick-list-col-header {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    white-space: nowrap;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s;
+  }
+  .quick-list-col-header:hover {
+    background: color-mix(in srgb, var(--border) 30%, var(--card));
+  }
+
+  /* ---------------------------------------------------------------------------
+   * PAGE LAYOUT COMPONENTS
+   * --------------------------------------------------------------------------- */
+
+  .page-container  { @apply min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6; }
+  .page-content    { @apply max-w-7xl mx-auto; }
+  .page-header     { @apply mb-6; }
+  .page-title      { @apply font-bold text-slate-800; font-size: 1.3125rem; }
+  .page-subtitle   { @apply text-slate-600 mt-1; }
+  .page-section    { @apply mb-8; }
+  .page-card       { @apply bg-white rounded-lg shadow-sm p-6 mb-6; }
+  .section-title   { @apply text-2xl font-semibold text-slate-800 mb-4; }
+  .section-subtitle{ @apply text-xl font-medium text-slate-700 mb-3; }
+
+  /* ---------------------------------------------------------------------------
+   * TABLE COMPONENTS
+   * --------------------------------------------------------------------------- */
+
+  .search-list-table {
+    @apply w-full table-auto;
+    border-collapse: collapse;
+  }
+
+  .search-list-header          { @apply bg-gradient-to-b from-blue-400 to-blue-300 text-white; }
+  .search-list-header-cell     { @apply px-4 py-2.5 text-center text-xs font-medium whitespace-nowrap transition-colors duration-200; }
+  .search-list-header-cell-sortable { @apply cursor-pointer hover:bg-blue-500/20; }
+
+  .search-list-row      { @apply border-b border-gray-200 transition-colors duration-200 hover:bg-blue-50; }
+  .search-list-row-even { @apply bg-white; }
+  .search-list-row-odd  { @apply bg-gray-50; }
+  .search-list-cell     { @apply px-4 py-3 text-sm whitespace-nowrap; }
+
+  /* Table cell content variants */
+  .table-cell-text        { @apply text-xs text-slate-700; }
+  .table-cell-text-medium { @apply text-xs text-slate-700 font-medium; }
+  .table-cell-empty       { @apply text-slate-400; }
+
+  .table-cell-button {
+    @apply text-xs text-blue-600 hover:text-blue-800;
+    @apply bg-transparent border-0 p-0 cursor-pointer;
+    @apply transition-transform hover:scale-110 no-underline;
+  }
+
+  /* QuickList ID badge */
+  .quick-list-id-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem; /* text-xs / 12px */
+    font-weight: 600;
+    padding: 0.125rem 0.3rem;
+    border-radius: 0.25rem;
+    background: var(--blue-50);
+    color: var(--blue-600);
+    border: 1px solid var(--blue-200);
+    white-space: nowrap;
+    min-width: 1.5rem;
+    text-align: center;
+  }
+
+  .quick-list-id-badge.selected {
+    background: var(--blue-400);
+    color: var(--card);
+  }
+
+  /* Use .table-cell-link for email / phone / name links (defined below) */
+
+  .table-cell-notes-icon    { @apply relative transition-transform hover:scale-130 cursor-pointer; }
+  .table-cell-notes-badge   { @apply absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center; }
+  .table-cell-notes-icon-svg{ @apply h-5 w-5 text-blue-500; }
+
+  .table-container { 
+    @apply bg-white overflow-hidden;
+    border-radius: 7px;
+    box-shadow: var(--shadow-lg);
+  }
+  .table-wrapper   { @apply overflow-x-auto; }
+
+  /* ---------------------------------------------------------------------------
+   * LINK & INTERACTIVE ELEMENTS
+   * --------------------------------------------------------------------------- */
+
+  /* Icons — 30% scale */
+  .icon-hover {
+    @apply transition-transform duration-200 cursor-pointer;
+  }
+  .icon-hover:hover { transform: scale(1.30); }
+
+  /* Text links — 10% scale */
+  .link-text {
+    @apply text-blue-600 hover:text-blue-800;
+    @apply no-underline transition-transform inline-block hover:scale-110;
+  }
+
+  /* Alias kept for backward compatibility — identical to .link-text */
+  .link-interactive {
+    @apply text-blue-600 hover:text-blue-800;
+    @apply no-underline transition-transform inline-block hover:scale-110;
+  }
+
+  .link-button {
+    @apply text-blue-600 hover:text-blue-800;
+    @apply bg-transparent border-0 p-0 cursor-pointer;
+    @apply no-underline transition-transform inline-block hover:scale-110;
+  }
+
+  .anchor-link {
+    @apply no-underline transition-transform inline-block hover:scale-110;
+  }
+
+  .table-cell-link {
+    @apply text-xs text-blue-600 hover:text-blue-800 cursor-pointer;
+    @apply no-underline transition-transform inline-block hover:scale-110;
+  }
+
+  /*
+   * detail-field-link
+   * Applied as a wrapper <div> around FloatingInput fields on the Lead Detail
+   * page for First Name, Last Name, Email, Home Phone, and Work Phone.
+   * Mirrors the blue + hover-grow effect used by .table-cell-button /
+   * .table-cell-link in the search list.
+   */
+  .detail-field-link {
+    transition: transform 0.15s ease;
+  }
+  .detail-field-link:hover {
+    transform: scale(1.05);
+    transform-origin: left center;
+  }
+  .detail-field-link input {
+    color: var(--blue-600);
+  }
+  .detail-field-link:hover input {
+    color: var(--blue-700);
+  }
+
+  .id-button {
+    @apply text-xs text-blue-600 hover:text-blue-800;
+    @apply hover:bg-blue-100 active:bg-blue-200 active:text-blue-900;
+    @apply font-medium border border-blue-300 rounded;
+    @apply px-2 py-1 cursor-pointer transition-colors duration-200;
+  }
+
+  /* ---------------------------------------------------------------------------
+   * TAB NAVIGATION
+   * Wrapper:   .tab-nav
+   * List:      .tab-nav-list
+   * Button:    .tab-nav-btn
+   * Modifier:  .tab-nav-btn--active
+   * --------------------------------------------------------------------------- */
+
+  .tab-nav {
+    margin-bottom: 1rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--gray-300);
+  }
+
+  .tab-nav-list {
+    display: flex;
+    gap: 1.5rem;
+    overflow-x: auto;
+  }
+
+  .tab-nav-btn {
+    padding-bottom: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--gray-600);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color var(--transition-base) var(--ease-out);
+  }
+
+  .tab-nav-btn:hover {
+    color: var(--gray-900);
+  }
+
+  .tab-nav-btn--active {
+    color: var(--blue-600);
+    border-bottom-color: var(--blue-600);
+  }
+
+  .tab-nav-btn--active:hover {
+    color: var(--blue-600);
+  }
+
+  /* ---------------------------------------------------------------------------
+   * LOCATION OPTION CARDS — Radio-select address cards for the Location step
+   * Usage:
+   *   <label class="location-option-card [location-option-card--selected]">
+   *     <input type="radio" class="location-option-radio" />
+   *     <span class="location-option-label">Label</span>
+   *     <span class="location-option-address">Street</span>
+   *   </label>
+   * --------------------------------------------------------------------------- */
+
+  .location-option-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    background: var(--card);
+    border: 2px solid var(--gray-200);
+    border-radius: 1rem;
+    padding: 0.875rem 1rem;
+    cursor: pointer;
+    transition:
+      border-color var(--transition-base) var(--ease-out),
+      box-shadow   var(--transition-base) var(--ease-out),
+      background   var(--transition-base) var(--ease-out);
+  }
+
+  .location-option-card:hover {
+    border-color: var(--blue-300);
+    box-shadow: var(--shadow-md);
+  }
+
+  .location-option-card--selected {
+    border-color: var(--blue-600);
+    background: var(--blue-50);
+    box-shadow: var(--shadow-md);
+  }
+
+  .location-option-radio {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    min-width: 1.25rem;
+    border: 2px solid var(--gray-400);
+    border-radius: 50%;
+    background: white;
+    margin-top: 0.125rem;
+    cursor: pointer;
+    transition:
+      border-color var(--transition-base) var(--ease-out),
+      background   var(--transition-base) var(--ease-out);
+    position: relative;
+  }
+
+  .location-option-radio:checked {
+    border-color: var(--blue-600);
+    background: var(--blue-600);
+  }
+
+  .location-option-radio:checked::after {
+    content: '';
+    display: block;
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    background: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .location-option-label {
+    display: block;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 0.25rem;
+  }
+
+  .location-option-address {
+    display: block;
+    font-size: 0.9375rem;
+    color: var(--gray-600);
+    line-height: 1.5;
+  }
+
+  /* ---------------------------------------------------------------------------
+   * LOAD SIZE CARDS — Inventory page truck selection cards
+   * Usage:
+   *   <button class=\"load-size-card\" data-selected=\"true|false\">
+   *     <img src=\"...\" class=\"load-size-icon\" />
+   *     <span class=\"load-size-label\">Partial</span>
+   *   </button>
+   * --------------------------------------------------------------------------- */
+
+  .load-size-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    background: var(--card);
+    border: 2px solid var(--gray-200);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition:
+      border-color var(--transition-base) var(--ease-out),
+      box-shadow   var(--transition-base) var(--ease-out),
+      background   var(--transition-base) var(--ease-out);
+  }
+
+  .load-size-card:hover {
+    border-color: var(--gray-400);
+    box-shadow: var(--shadow-md);
+  }
+
+  .load-size-card[data-selected="true"] {
+    border-color: var(--blue-600);
+    background: var(--blue-50);
+    box-shadow: var(--shadow-md);
+  }
+
+  .load-size-icon-wrapper {
+    width: 100%;
+    height: 7rem;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media (max-width: 639px) {
+    .load-size-icon-wrapper {
+      height: 5rem;
+    }
+  }
+
+  .load-size-icon {
+    width: 90%;
+    height: 90%;
+    object-fit: contain;
+  }
+
+  .load-size-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gray-900);
+  }
+
+  /* ---------------------------------------------------------------------------
+   * EDIT LIST
+   * Layout:     .edit-list-actions-header  .edit-list-actions-cell
+   *             .edit-list-row--editing
+   * Buttons:    .edit-list-btn-group  .edit-list-btn
+   *             .edit-list-btn--edit  .edit-list-btn--save
+   *             .edit-list-btn--cancel  .edit-list-btn--delete
+   * Footer:     .edit-list-footer  .edit-list-footer--single
+   *             .edit-list-footer-info  .edit-list-footer-pagination
+   *             .edit-list-pagination-btn  .edit-list-pagination-label
+   * --------------------------------------------------------------------------- */
+
+  .edit-list-actions-header {
+    width: 80px;
+    min-width: 80px;
+  }
+
+  .edit-list-actions-cell {
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .edit-list-row--editing {
+    background-color: var(--blue-50) !important;
+  }
+
+  .edit-list-btn-group {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+  }
+
+  .edit-list-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 1.75rem;
+    width: 1.75rem;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    cursor: pointer;
+    transition:
+      background-color var(--transition-base) var(--ease-out),
+      color var(--transition-base) var(--ease-out),
+      transform var(--transition-fast) var(--ease-out);
+  }
+
+  .edit-list-btn:hover {
+    transform: scale(1.1);
+  }
+
+  .edit-list-btn--edit         { color: var(--blue-600); }
+  .edit-list-btn--edit:hover   { background-color: var(--blue-100); color: var(--blue-700); }
+
+  .edit-list-btn--save         { color: var(--green-600); }
+  .edit-list-btn--save:hover   { background-color: var(--green-100); color: var(--green-700); }
+
+  .edit-list-btn--cancel       { color: var(--slate-500); }
+  .edit-list-btn--cancel:hover { background-color: var(--slate-100); color: var(--slate-700); }
+
+  .edit-list-btn--delete       { color: var(--destructive); }
+  .edit-list-btn--delete:hover {
+    background-color: color-mix(in srgb, var(--destructive) 10%, white);
+    color: var(--destructive);
+  }
+
+  .edit-list-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.75rem;
+    border-top: 1px solid var(--slate-200);
+  }
+
+  .edit-list-footer--single {
+    justify-content: flex-start;
+  }
+
+  .edit-list-footer-info {
+    font-size: 0.75rem;
+    color: var(--slate-400);
+  }
+
+  .edit-list-footer-pagination {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .edit-list-pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 1.75rem;
+    width: 1.75rem;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--slate-500);
+    cursor: pointer;
+    transition: background-color var(--transition-base) var(--ease-out);
+  }
+
+  .edit-list-pagination-btn:hover:not(:disabled) {
+    background-color: var(--slate-100);
+  }
+
+  .edit-list-pagination-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .edit-list-pagination-label {
+    font-size: 0.75rem;
+    padding: 0 0.5rem;
+    color: var(--slate-500);
+  }
+
+  /* Edit-mode field — full rounded box, border visible only on focus.
+   * Border-color / border-radius overrides live in the unlayered block
+   * at the bottom of this file so they beat the global field reset. */
+  .edit-list-field {
+    width: 100%;
+    background: transparent;
+    padding: 0.25rem 0.625rem;
+    border-radius: var(--radius-md);
+    transition:
+      border-color var(--transition-base) var(--ease-out),
+      box-shadow   var(--transition-base) var(--ease-out);
+  }
+
+  /* ---------------------------------------------------------------------------
+   * DETAIL HEADER TOOLBAR — Icon buttons & Notes badge
+   * All colour, sizing, and transition values come from design-system tokens.
+   * See /src/app/components/detail-header.tsx for usage.
+   * --------------------------------------------------------------------------- */
+
+  .detail-header-toolbar-btn {
+    display:         inline-flex;
+    align-items:     center;
+    justify-content: center;
+    position:        relative;
+    height:          2rem;
+    width:           2rem;
+    padding:         0;
+    background:      transparent;
+    border:          none;
+    border-radius:   var(--radius-sm);
+    cursor:          pointer;
+    color:           var(--slate-500);
+    transition:
+      color            var(--transition-fast) var(--ease-out),
+      background-color var(--transition-fast) var(--ease-out);
+  }
+
+  .detail-header-toolbar-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Search toggle — expanded/active state */
+  .detail-header-toolbar-btn--search-active {
+    color: var(--green-500);
+  }
+
+  /* Page-size dropdown — open state */
+  .detail-header-toolbar-btn--pager-open {
+    background-color: rgba(255, 255, 255, 0.3);
+    color:            var(--green-500);
+  }
+
+  /* Notes button — at least one note exists */
+  .detail-header-toolbar-btn--notes-active {
+    color: var(--blue-500);
+  }
+
+  /* Notes SVG icon sizing */
+  .detail-header-notes-icon {
+    width:       1rem;
+    height:      1rem;
+    flex-shrink: 0;
+  }
+
+  /* Count badge — absolutely positioned top-right of the notes button */
+  .detail-header-notes-badge {
+    position:        absolute;
+    top:             -0.2rem;
+    right:           -0.2rem;
+    min-width:       0.875rem;
+    height:          0.875rem;
+    padding:         0 0.2rem;
+    border-radius:   var(--radius-full);
+    background:      var(--blue-500);
+    color:           var(--primary-foreground);
+    font-size:       0.5rem;
+    font-weight:     700;
+    line-height:     1;
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    pointer-events:  none;
+    white-space:     nowrap;
+  }
+
+  /* Page-size dropdown list */
+  .detail-header-pager-dropdown {
+    position:      absolute;
+    right:         0;
+    top:           100%;
+    margin-top:    0.25rem;
+    background:    var(--card);
+    border:        1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow:    var(--shadow-lg);
+    z-index:       var(--z-dropdown);
+    padding:       0.25rem 0;
+    min-width:     4rem;
+  }
+
+  .detail-header-pager-option {
+    display:    block;
+    width:      100%;
+    text-align: left;
+    padding:    0.375rem 0.75rem;
+    background: transparent;
+    border:     none;
+    cursor:     pointer;
+    font-size:  0.75rem;
+    color:      var(--slate-600);
+    transition: background-color var(--transition-fast) var(--ease-out);
+  }
+
+  .detail-header-pager-option:hover {
+    background-color: var(--muted);
+  }
+
+  .detail-header-pager-option--selected {
+    color:       var(--green-500);
+    font-weight: 600;
+  }
+
+  /* ---------------------------------------------------------------------------
+   * NOTES POP-PANEL — Note cards, dest badges, and action buttons
+   * All raw hex values for colours with no design-system token (amber, purple,
+   * orange, sky) live here — never in TSX inline styles.
+   * --------------------------------------------------------------------------- */
+
+  /* ── Note card shell ──────────────────────────────────────────────────────── */
+  .note-card {
+    background:    var(--card);
+    border:        1px solid var(--border);
+    border-radius: 0.5rem;
+    padding:       0.75rem;
+    transition:    background var(--transition-fast) var(--ease-out),
+                   border-color var(--transition-fast) var(--ease-out);
+  }
+
+  /* Pinned state — warm amber tint via warning token */
+  .note-card--pinned {
+    background:   color-mix(in srgb, var(--warning) 8%, white);
+    border-color: color-mix(in srgb, var(--warning) 40%, white);
+  }
+
+  /* ── Icon action buttons (pin / archive / delete / restore) ──────────────── */
+  .note-card-icon-btn {
+    display:         inline-flex;
+    align-items:     center;
+    justify-content: center;
+    background:      transparent;
+    border:          none;
+    cursor:          pointer;
+    padding:         0.125rem;
+    flex-shrink:     0;
+    color:           var(--muted-foreground);
+    line-height:     1;
+    transition:      color      var(--transition-fast) var(--ease-out),
+                     transform  var(--transition-fast) var(--ease-out);
+  }
+
+  .note-card-icon-btn:hover {
+    color:     var(--foreground);
+    transform: scale(1.15);
+  }
+
+  /* Pin button — active/pinned state */
+  .note-card-pin-btn--active {
+    color: var(--warning);
+  }
+
+  /* SVG fill follows color when pinned */
+  .note-card-pin-btn--active svg {
+    fill: var(--warning);
+  }
+
+  /* Default SVG fill — none; transition shared */
+  .note-card-icon-btn svg {
+    transition: fill var(--transition-fast) var(--ease-out);
+  }
+
+  /* ── Reminder bell ────────────────────────────────────────────────────────── */
+  .note-card-remind {
+    display:     inline-flex;
+    align-items: center;
+    gap:         0.2rem;
+    font-size:   0.6875rem;
+    color:       var(--muted-foreground);
+  }
+
+  .note-card-remind--alert {
+    color:       var(--warning);
+    font-weight: 600;
+  }
+
+  /* ── Destination visibility badges ───────────────────────────────────────── */
+  .note-dest-badge {
+    display:        inline-flex;
+    align-items:    center;
+    font-size:      0.625rem;
+    font-weight:    600;
+    letter-spacing: 0.03em;
+    padding:        0.1rem 0.45rem;
+    border-radius:  var(--radius-full);
+    white-space:    nowrap;
+  }
+
+  /* Dest 1 — Blue (design-system tokens) */
+  .note-dest-badge--1 { background: var(--blue-50);  color: var(--blue-500);  }
+
+  /* Dest 2 — Green (design-system tokens) */
+  .note-dest-badge--2 { background: var(--green-50); color: var(--green-600); }
+
+  /* Dest 3 — Amber */
+  .note-dest-badge--3 { background: var(--amber-100); color: var(--amber-600); }
+
+  /* Dest 4 — Purple */
+  .note-dest-badge--4 { background: var(--purple-50); color: var(--purple-500); }
+
+  /* Dest 5 — Orange */
+  .note-dest-badge--5 { background: var(--orange-50); color: var(--orange-600); }
+
+  /* Dest 7 — Sky */
+  .note-dest-badge--7 { background: var(--sky-50); color: var(--sky-500); }
+
+  /* Fallback for any unmapped dest IDs */
+  .note-dest-badge--default { background: var(--muted); color: var(--muted-foreground); }
+
+  /* ── Form action buttons ─────────────────────────────────────────────────── */
+  .notes-panel-add-btn {
+    display:         inline-flex;
+    align-items:     center;
+    justify-content: center;
+    gap:             0.25rem;
+    padding:         0 1rem;
+    height:          2.25rem;
+    background:      var(--blue-400);
+    color:           var(--primary-foreground);
+    border:          none;
+    border-radius:   var(--radius-md);
+    font-size:       0.75rem;
+    font-weight:     700;
+    cursor:          pointer;
+    transition:      background-color var(--transition-fast) var(--ease-out);
+  }
+
+  .notes-panel-add-btn:hover:not(:disabled) { background: var(--blue-500); }
+
+  .notes-panel-add-btn:disabled {
+    opacity:        0.5;
+    cursor:         not-allowed;
+    pointer-events: none;
+  }
+
+  .notes-panel-clear-btn {
+    display:         inline-flex;
+    align-items:     center;
+    justify-content: center;
+    padding:         0 1rem;
+    height:          2.25rem;
+    background:      transparent;
+    color:           var(--slate-400);
+    border:          1px solid var(--border);
+    border-radius:   var(--radius-md);
+    font-size:       0.75rem;
+    font-weight:     700;
+    cursor:          pointer;
+    transition:      background-color var(--transition-fast) var(--ease-out),
+                     color            var(--transition-fast) var(--ease-out);
+  }
+
+  .notes-panel-clear-btn:hover {
+    background: var(--muted);
+    color:      var(--slate-600);
+  }
+
+  /* Visibility dropdown "clear" button */
+  .notes-vis-clear-btn {
+    display:         inline-flex;
+    align-items:     center;
+    justify-content: center;
+    width:           4rem;
+    height:          2rem;
+    border-radius:   var(--radius-md);
+    border:          none;
+    background:      var(--blue-400);
+    color:           var(--primary-foreground);
+    font-size:       0.75rem;
+    font-weight:     600;
+    cursor:          pointer;
+    transition:      background-color var(--transition-fast) var(--ease-out);
+  }
+
+  .notes-vis-clear-btn:hover { background: var(--blue-500); }
+
+  /* ── Save button (inline-edit check) — green ─────────────────────────── */
+  .note-card-save-btn       { color: var(--green-600); }
+  .note-card-save-btn:hover { color: var(--green-700); background-color: var(--green-100); }
+
+  /* ── Note card internals ─────────────────────────────────────────────── */
+
+  /* Body row: pin | content | action buttons */
+  .note-card-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  /* Content paragraph (view mode) */
+  .note-card-content {
+    flex: 1;
+    font-size: 0.8125rem;
+    color: var(--foreground);
+    line-height: 1.5;
+    margin: 0;
+    word-break: break-word;
+    white-space: pre-wrap;
+  }
+
+  /* Textarea (edit mode) — layered on top of textarea-minimal base */
+  .note-card-edit-textarea {
+    flex: 1;
+    font-size: 0.8125rem;
+    color: var(--slate-500);
+    line-height: 1.5;
+    overflow: hidden;
+    resize: none;
+  }
+
+  /* 2-col grid above textarea when editing (Reminder | Visibility) */
+  .note-card-edit-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Field label inside edit header */
+  .note-card-field-label {
+    display: block;
+    font-size: 0.6875rem;
+    color: var(--muted-foreground);
+    margin-bottom: 0.25rem;
+  }
+
+  /* Meta row (author · date · reminder bell) */
+  .note-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .note-card-meta-text { font-size: 0.6875rem; color: var(--muted-foreground); }
+  .note-card-meta-dot  { font-size: 0.625rem;  color: var(--border); }
+
+  /* Visibility badge row */
+  .note-card-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+  }
+
+  /* ── Panel form area ────────────────────��────────────────────────────── */
+
+  /* Labels above Reminder / Visibility / Note inputs */
+  .notes-form-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+    margin-bottom: 0.25rem;
+  }
+
+  /* Cap-reached warning row */
+  .notes-cap-warning {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.6875rem;
+    color: var(--muted-foreground);
+    margin-bottom: 0.875rem;
+  }
+
+  /* "Add Note" + "Clear" row */
+  .notes-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  /* ── Saved-notes list area ────────────────────────────────────────────�� */
+
+  /* Top-border separator between form card and list */
+  .notes-list-section {
+    border-top: 1px solid var(--border);
+    padding-top: 1.25rem;
+  }
+
+  /* "Saved Notes" heading row */
+  .notes-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+
+  .notes-list-heading {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--muted-foreground);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  /* Archive toggle pill button */
+  .notes-archive-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.125rem 0.375rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    line-height: 1;
+    transition:
+      background     var(--transition-fast) var(--ease-out),
+      color          var(--transition-fast) var(--ease-out),
+      border-color   var(--transition-fast) var(--ease-out);
+  }
+
+  .notes-archive-toggle--active {
+    background:   var(--muted);
+    border-color: var(--border);
+    color:        var(--foreground);
+  }
+
+  .notes-archive-toggle span { font-size: 0.6875rem; }
+
+  /* Active notes stack */
+  .notes-active-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+
+  /* ── Archived notes section ──────────────────────────────────────────── */
+
+  .notes-archived-section {
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background: var(--muted);
+  }
+
+  .notes-archived-header {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--muted);
+  }
+
+  .notes-archived-header--bordered { border-bottom: 1px solid var(--border); }
+
+  .notes-archived-heading {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  .notes-archived-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.625rem;
+  }
+
+  .notes-archived-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    opacity: 0.85;
+  }
+
+  .notes-archived-item-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .notes-archived-content {
+    flex: 1;
+    font-size: 0.8125rem;
+    color: var(--foreground);
+    line-height: 1.5;
+    margin: 0;
+    word-break: break-word;
+    white-space: pre-wrap;
+  }
+
+  .notes-archived-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem 0.5rem;
+    margin-top: 0.375rem;
+    flex-wrap: wrap;
+  }
+
+  /* ── Visibility multi-select ─────────────────────────────────────────── */
+
+  /* Trigger button */
+  .notes-vis-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.5rem 0;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    font-size: 0.75rem;
+    outline: none;
+    box-sizing: border-box;
+  }
+
+  .notes-vis-trigger:focus { outline: none; box-shadow: none; }
+
+  .notes-vis-trigger-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+  }
+
+  .notes-vis-chevron {
+    width: 0.875rem;
+    height: 0.875rem;
+    flex-shrink: 0;
+    margin-left: 0.375rem;
+    color: var(--muted-foreground);
+    transition: transform 0.15s;
+  }
+
+  .notes-vis-chevron--open { transform: rotate(180deg); }
+
+  /* Select-all header row */
+  .notes-vis-select-all {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.5rem 0.875rem;
+    cursor: pointer;
+    user-select: none;
+    font-weight: 600;
+    color: var(--foreground);
+    border-bottom: 1px solid var(--border);
+    background: var(--muted);
+  }
+
+  /* Individual dest rows — hover handled by CSS, no JS needed */
+  .notes-vis-item {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.5rem 0.875rem;
+    cursor: pointer;
+    user-select: none;
+    color: var(--foreground);
+  }
+
+  .notes-vis-item:hover { background: var(--muted); }
+
+  .notes-vis-footer {
+    padding: 0.625rem 0.875rem;
+    border-top: 1px solid var(--border);
+  }
+
+} /* end @layer components */
+
+/* =============================================================================
+ * CALENDAR / DATE PICKER — pseudo-element rules
+ * Must stay outside @layer (pseudo-element selectors have limited layer support)
+ * ============================================================================= */
+
+/* Default — list / table views */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  width: 18px !important; height: 18px !important;
+  min-width: 18px !important; min-height: 18px !important;
+  max-width: 18px !important; max-height: 18px !important;
+  cursor: pointer !important; opacity: 1 !important; filter: none !important;
+  -webkit-appearance: auto !important; appearance: auto !important;
+}
+input[type="date"]::-moz-calendar-picker-indicator {
+  width: 18px !important; height: 18px !important;
+  min-width: 18px !important; min-height: 18px !important;
+  max-width: 18px !important; max-height: 18px !important;
+  cursor: pointer !important; opacity: 1 !important; filter: none !important;
+}
+
+/* Grid Card — 16px desktop */
+.grid-card input[type="date"]::-webkit-calendar-picker-indicator {
+  width: 16px !important; height: 16px !important;
+  min-width: 16px !important; min-height: 16px !important;
+  max-width: 16px !important; max-height: 16px !important;
+  cursor: pointer !important; opacity: 1 !important; filter: none !important;
+  -webkit-appearance: auto !important; appearance: auto !important;
+}
+.grid-card input[type="date"]::-moz-calendar-picker-indicator {
+  width: 16px !important; height: 16px !important;
+  min-width: 16px !important; min-height: 16px !important;
+  max-width: 16px !important; max-height: 16px !important;
+  cursor: pointer !important; opacity: 1 !important; filter: none !important;
+}
+
+/* Grid Card — 12px mobile */
+@media (max-width: 640px) {
+  .grid-card input[type="date"]::-webkit-calendar-picker-indicator {
+    width: 12px !important; height: 12px !important;
+    min-width: 12px !important; min-height: 12px !important;
+    max-width: 12px !important; max-height: 12px !important;
+    cursor: pointer !important; opacity: 1 !important; filter: none !important;
+    -webkit-appearance: auto !important; appearance: auto !important;
+  }
+  .grid-card input[type="date"]::-moz-calendar-picker-indicator {
+    width: 12px !important; height: 12px !important;
+    min-width: 12px !important; min-height: 12px !important;
+    max-width: 12px !important; max-height: 12px !important;
+    cursor: pointer !important; opacity: 1 !important; filter: none !important;
+  }
+}
+
+/* =============================================================================
+ * KEYFRAME DEFINITIONS — must stay at top level (outside any @layer)
+ * ============================================================================= */
+
+@keyframes fadeIn         { from { opacity: 0; }                                to { opacity: 1; }                              }
+@keyframes fadeOut        { from { opacity: 1; }                                to { opacity: 0; }                              }
+@keyframes slideInFromTop { from { transform: translateY(-100%); opacity: 0; }  to { transform: translateY(0); opacity: 1; }    }
+@keyframes slideInFromBottom { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; }   }
+@keyframes slideInFromLeft   { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideInFromRight  { from { transform: translateX(100%); opacity: 0; }  to { transform: translateX(0); opacity: 1; } }
+@keyframes scaleIn        { from { transform: scale(0.9); opacity: 0; }         to { transform: scale(1); opacity: 1; }         }
+
+/* =============================================================================
+ * UTILITY CLASSES
+ * ============================================================================= */
+@layer utilities {
+
+  /* Hover scale */
+  .hover-scale-110               { @apply transition-transform duration-200; }
+  .hover-scale-110:hover         { transform: scale(1.10); }
+  .hover-scale-130               { @apply transition-transform duration-200; }
+  .hover-scale-130:hover         { transform: scale(1.30); }
+
+  /* Text truncation */
+  .truncate-text { @apply overflow-hidden text-ellipsis whitespace-nowrap; }
+
+  .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+  /* Gradient shorthands */
+  .gradient-blue-header { @apply bg-gradient-to-b from-blue-400 to-blue-300; }
+  .gradient-blue-subtle { @apply bg-gradient-to-b from-blue-50 to-blue-100; }
+
+  /* Loading spinner */
+  .spinner { @apply animate-spin rounded-full border-2 border-current border-t-transparent; }
+
+  /* Screen-reader only */
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border-width: 0;
+  }
+
+  /* Backdrop blur shorthands */
+  .backdrop-blur-sm { backdrop-filter: blur(4px);  }
+  .backdrop-blur-md { backdrop-filter: blur(8px);  }
+  .backdrop-blur-lg { backdrop-filter: blur(16px); }
+
+  /* Animation utilities (consume the keyframes defined above) */
+  .animate-fade-in       { animation: fadeIn          200ms ease-in-out; }
+  .animate-fade-out      { animation: fadeOut         200ms ease-in-out; }
+  .animate-slide-in-top  { animation: slideInFromTop  300ms ease-out;    }
+  .animate-slide-in-bottom { animation: slideInFromBottom 300ms ease-out; }
+  .animate-slide-in-left { animation: slideInFromLeft  300ms ease-out;   }
+  .animate-slide-in-right{ animation: slideInFromRight 300ms ease-out;   }
+  .animate-scale-in      { animation: scaleIn         200ms ease-out;    }
+
+  /* Responsive visibility helpers */
+  .mobile-only  { display: block; }
+  .desktop-only { display: none;  }
+
+  @media (min-width: 640px) {
+    .mobile-only  { display: none;  }
+    .desktop-only { display: block; }
+  }
+
+} /* end @layer utilities */
+
+/* =============================================================================
+ * SWIPE / SCROLL-SNAP UTILITIES
+ * Hides the scrollbar on the horizontal swipe container in details.tsx
+ * ============================================================================= */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* =============================================================================
+ * PRINT STYLES
+ * ============================================================================= */
+@media print {
+  body        { @apply bg-white text-black; }
+  .no-print   { display: none !important; }
+  a           { text-decoration: underline; }
+  details     { display: block !important; }
+  details summary { display: none; }
+  table, tr   { page-break-inside: avoid; }
+}
+
+/* =============================================================================
+ * EMBED CALENDAR — CalendarPicker component  (/src/app/components/embed-calendar.tsx)
+ * ============================================================================= */
+
+.cal-wrapper {
+  width: 320px;
+  background: var(--card);
+  border: 1px solid var(--cal-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--gray-600);
+  box-sizing: border-box;
+  box-shadow: none;
+  transition: box-shadow var(--transition-base) var(--ease-out);
+}
+.cal-wrapper:hover {
+  box-shadow: var(--shadow-lg);
+}
+.cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.cal-nav-btn {
+  border: none;
+  background: transparent;
+  color: var(--cal-nav-color);
+  font-size: 34px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 6px;
+}
+.cal-month-label {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--cal-month-label);
+}
+.cal-day-header-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid var(--cal-border);
+  padding-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+.cal-day-header-cell {
+  text-align: center;
+  font-size: 14px;
+  color: var(--cal-day-header);
+  font-weight: 500;
+}
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  row-gap: 6px;
+}
+.cal-day-cell {
+  width: 36px;
+  height: 36px;
+  margin: 0 auto;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  font-size: 14px;
+  cursor: pointer;
+}
+.cal-day-cell--current  { color: var(--cal-day-current); }
+.cal-day-cell--outside  { color: var(--cal-day-outside); }
+.cal-day-cell--selected { border: 2px solid var(--cal-day-selected-border); color: var(--cal-day-selected-text); font-weight: 500; }
+.cal-day-cell--today    { color: var(--cal-day-today); font-weight: 600; }
+
+/* =============================================================================
+ * QUICK LIST — QuickList component  (/src/app/components/calc-card.tsx)
+ * ============================================================================= */
+
+.quick-list-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 1.25rem 0 0;
+  background: var(--card);
+}
+.quick-list-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding-bottom: 0.5rem;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+  border-bottom: 1px solid var(--border);
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0;
+}
+.quick-list-title-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.quick-list-icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding-left: 4px;
+}
+.quick-list-table-wrap {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.quick-list-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+.quick-list-th {
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+.quick-list-th.col-first { padding-left: 1.25rem; }
+.quick-list-th.col-last  { padding-right: 1.25rem; }
+.quick-list-td {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--gray-200);
+}
+.quick-list-td.col-first { padding-left: 1.25rem; }
+.quick-list-td.col-last  { padding-right: 1.25rem; }
+.col-align-left   { text-align: left;   }
+.col-align-center { text-align: center; }
+.col-align-right  { text-align: right;  }
+.quick-list-row {
+  cursor: pointer;
+  outline: none;
+  outline-offset: -2px;
+  transition: background-color 0.2s;
+}
+.quick-list-row--even     { background: var(--table-row-even); }
+.quick-list-row--odd      { background: var(--table-row-odd); }
+.quick-list-row--selected { background: var(--table-row-hover); }
+.quick-list-row:not(.quick-list-row--selected):hover { background: var(--table-row-hover); }
+.quick-list-empty-cell {
+  padding: 1.5rem 0.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+.quick-list-footer {
+  border-top-color: var(--border);
+  flex-shrink: 0;
+  padding: 0.375rem 1.25rem;
+}
+.quick-list-range {
+  font-size: 0.625rem;
+  color: var(--muted-foreground);
+}
+.quick-list-page-btn {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--slate-500);
+}
+.quick-list-page-label {
+  font-size: 0.625rem;
+  color: var(--slate-500);
+  padding: 0 0.25rem;
+}
+
+/* =============================================================================
+ * DATE PICKER — DatePicker component  (/src/app/components/date-picker.tsx)
+ * ============================================================================= */
+
+.date-picker-calendar-icon      { color: var(--blue-400); }
+.date-picker-trigger--has-value { color: var(--slate-500); }
+
+/* =============================================================================
+ * SPLASH PAGE — /src/app/pages/online/splash.tsx
+ * ============================================================================= */
+
+.splash-video-wrap   { z-index: 0; }
+.splash-iframe {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200%;
+  height: 200%;
+  transform: translate(-50%, -50%);
+  border: none;
+  pointer-events: none;
+}
+.splash-overlay {
+  background: linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.75) 100%);
+}
+.splash-header       { z-index: 10; }
+.splash-settings-btn { background: rgba(255,255,255,0.15); }
+.splash-content {
+  z-index: 10;
+  min-height: calc(100vh - 72px);
+}
+.splash-service-label { font-size: 20px; }
+
+/* =============================================================================
+ * ADMIN PAGE — /src/app/pages/online/admin.tsx
+ * ============================================================================= */
+
+.admin-back-label     { font-size: 14px; }
+.admin-title          { font-size: 18px; }
+.admin-card-title     { font-size: 15px; }
+.admin-table-card     { padding: 0; overflow: hidden; margin-bottom: 0; }
+.admin-table-header   { background-color: var(--admin-header-bg); }
+.admin-table-cell     { font-size: 14px; }
+.admin-formula-cell   { font-size: 13px; }
+.admin-converter-grid { grid-template-columns: 1fr 1fr 2fr; }
+
+/* =============================================================================
+ * TYPOGRAPHY UTILITIES — Font size overrides
+ * =============================================================================
+ * Used when specific font sizes are needed that differ from theme defaults.
+ * ============================================================================= */
+
+.text-10px { font-size: 10px; }
+.text-11px { font-size: 11px; }
+.text-12px { font-size: 12px; }
+.text-13px { font-size: 13px; }
+.text-14px { font-size: 14px; }
+.text-15px { font-size: 15px; }
+.text-16px { font-size: 16px; }
+.text-18px { font-size: 18px; }
+.text-22px { font-size: 22px; }
+.text-36px { font-size: 36px; }
+.text-56px { font-size: 56px; }
+
+.font-weight-800 { font-weight: 800; }
+
+.uppercase-tracking { text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* =============================================================================
+ * LAYOUT UTILITIES
+ * ============================================================================= */
+
+.backdrop-dark {
+  background-color: rgba(0, 0, 0, 0.45);
+}
+
+.backdrop-darker {
+  background-color: rgba(0, 0, 0, 0.55);
+}
+
+.h-360 { height: 360px; }
+
+.min-width-2ch {
+  min-width: 2ch;
+  text-align: center;
+}
+
+/* =============================================================================
+ * ALLOWANCE MODAL — /src/app/components/allowance-modal.tsx
+ * ============================================================================= */
+
+.allowance-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.allowance-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 9999;
+}
+
+.allowance-card {
+  position: relative;
+  background-color: var(--card);
+  border-radius: 24px;
+  padding: 32px 28px 28px;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.25);
+}
+
+.allowance-close-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: var(--gray-400);
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+}
+
+.allowance-close-btn:hover {
+  color: var(--gray-600);
+}
+
+.allowance-gift-box {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+
+.allowance-gift-lid,
+.allowance-gift-base {
+  display: block;
+}
+
+.allowance-gift-lid {
+  transform-origin: bottom center;
+}
+
+.allowance-heading {
+  color: var(--gray-600);
+  margin-bottom: 4px;
+}
+
+.allowance-heading-strong {
+  color: var(--gray-900);
+}
+
+.allowance-amount {
+  color: var(--green-600);
+  margin-bottom: 8px;
+}
+
+.allowance-amount-text {
+  font-size: 56px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.allowance-description {
+  color: var(--gray-600);
+  margin-bottom: 28px;
+  font-size: 14px;
+}
+
+.allowance-continue-btn {
+  background-color: var(--blue-600);
+  color: var(--card);
+  border: none;
+  border-radius: 12px;
+  padding: 14px 48px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.allowance-continue-btn:hover {
+  background-color: var(--blue-700);
+}
+
+.allowance-continue-btn:active {
+  transform: scale(0.98);
+}
+
+/* =============================================================================
+ * WELCOME PAGE — /src/app/pages/online/welcome.tsx
+ * ============================================================================= */
+
+.section-heading {
+  font-size: 16px;
+}
+
+/* =============================================================================
+ * INVENTORY PAGE — /src/app/pages/online/inventory.tsx
+ * ============================================================================= */
+
+.inventory-bedroom-badge {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.inventory-choice-btn {
+  flex: 1;
+  padding: 0.5rem 1.5rem;
+  border-radius: 0.75rem;
+  border-width: 2px;
+  font-weight: 600;
+  transition-property: border-color, background-color, color;
+  transition-duration: 200ms;
+}
+
+.inventory-choice-btn-yes {
+  border-color: var(--blue-600);
+  background-color: var(--blue-50);
+  color: var(--blue-700);
+}
+
+.inventory-choice-btn-no {
+  border-color: var(--blue-600);
+  background-color: var(--blue-50);
+  color: var(--blue-700);
+}
+
+.inventory-choice-btn-inactive {
+  border-color: var(--gray-300);
+  background-color: var(--card);
+  color: var(--gray-700);
+}
+
+.inventory-bedroom-count {
+  font-size: 36px;
+  font-weight: 700;
+  min-width: 2ch;
+  text-align: center;
+}
+
+.inventory-bedroom-selected {
+  font-size: 13px;
+  color: var(--gray-400);
+}
+
+/* =============================================================================
+ * CONFIRMATION PAGE — /src/app/pages/online/confirmation.tsx
+ * ============================================================================= */
+
+.confirmation-error-title {
+  font-size: 14px;
+}
+
+.confirmation-error-message {
+  font-size: 13px;
+}
+
+.confirmation-copy-btn {
+  font-size: 12px;
+}
+
+.confirmation-debug-body {
+  font-size: 12px;
+}
+
+.confirmation-debug-section-label {
+  font-size: 10px;
+}
+
+.confirmation-debug-pre {
+  font-size: 11px;
+}
+
+.confirmation-debug-table-key {
+  width: 40%;
+  font-family: monospace;
+}
+
+.confirmation-debug-table-value {
+  font-family: monospace;
+}
+
+.confirmation-detail-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.confirmation-detail-value {
+  font-size: 15px;
+}
+
+.confirmation-save-btn {
+  font-size: 14px;
+}
+
+.confirmation-debug-row-label {
+  width: 90px;
+}
+
+/* =============================================================================
+ * CALC CARD — /src/app/components/calc-card.tsx
+ * ============================================================================= */
+
+.quick-list-icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background-color: var(--blue-50);
+  flex-shrink: 0;
+}
+
+/* =============================================================================
+ * SEARCH MODAL — FIELD OVERRIDES  ⚠️  DO NOT MOVE THIS BLOCK
+ * =============================================================================
+ * Intentionally UNLAYERED — wins the cascade over all @layer rules above.
+ * (See Cascade L5 note in the file header.)
+ *
+ * Do not wrap these in @layer or move them above the @layer blocks.
+ * ============================================================================= */
+
+/* Ensure field backgrounds stay transparent on the white card surface */
+.search-modal input,
+.search-modal [data-slot="select-trigger"],
+.search-modal .date-picker-trigger {
+  background: transparent !important;
+}
+
+/* =============================================================================
+ * EDIT LIST — FIELD OVERRIDES  ⚠️  DO NOT MOVE THIS BLOCK
+ * =============================================================================
+ * Intentionally UNLAYERED so these !important rules beat the global field
+ * border reset that lives in @layer components above.
+ *
+ * Behaviour:
+ *   blur  → transparent border (invisible, but reserves space so row height
+ *           stays stable) + no shadow
+ *   focus → solid blue rounded box + soft blue glow
+ * ============================================================================= */
+
+.edit-list-field {
+  border-top:    1px solid transparent !important;
+  border-left:   1px solid transparent !important;
+  border-right:  1px solid transparent !important;
+  border-bottom: 1px solid transparent !important;
+  border-radius: var(--radius-md)      !important;
+  outline:       none                  !important;
+  box-shadow:    none                  !important;
+}
+
+.edit-list-field:focus {
+  border-top:    1px solid var(--blue-400) !important;
+  border-left:   1px solid var(--blue-400) !important;
+  border-right:  1px solid var(--blue-400) !important;
+  border-bottom: 1px solid var(--blue-400) !important;
+  border-radius: var(--radius-md)          !important;
+  outline:       none                      !important;
+  box-shadow:    0 0 0 3px color-mix(in srgb, var(--blue-400) 18%, transparent) !important;
+}
