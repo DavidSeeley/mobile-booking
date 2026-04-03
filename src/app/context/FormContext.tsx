@@ -26,6 +26,7 @@ export interface WelcomeData {
   locationState: string;
   locationZip: string;
   unitType: string;
+  allowance: number;
 }
 
 export interface ContactData {

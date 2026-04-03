@@ -10,7 +10,7 @@ import type {
 } from './types';
 import { SalesOrderApiError, isSuccessResponse } from './types';
 import type { SavedContact, SavedAddress, SavedWelcome, SavedInventory } from '@/mocks/MobileCust';
-import { loadAdminVars } from '@/mocks/AdminVar';
+import type { RoomSizeRow } from '@/lib/supabase';
 
 // ---------------------------------------------------------------------------
 // Payload builder
@@ -32,14 +32,14 @@ export function buildSalesOrderPayload(params: {
   welcome:   SavedWelcome;
   inventory: SavedInventory;
   email:     string;
+  roomSizes: RoomSizeRow[];
 }): SalesOrderRequest {
-  const { contact, address, welcome, inventory, email } = params;
+  const { contact, address, welcome, inventory, email, roomSizes } = params;
 
-  // Furniture total: sum the fur value for each selected room from AdminVar roomSizes.
+  // Furniture total: sum the fur value for each selected room from Supabase roomSizes.
   // For 'bedroom', multiply by bedroomCount (user may be moving multiple bedrooms).
-  const adminVars = loadAdminVars();
   const furTotal = inventory.selectedRooms.reduce((sum, roomId) => {
-    const roomRow = adminVars.roomSizes.find((r) => r.id === roomId);
+    const roomRow = roomSizes.find((r) => r.id === roomId);
     if (!roomRow) return sum;
     const multiplier = roomId === 'bedroom' ? inventory.bedroomCount : 1;
     return sum + roomRow.fur * multiplier;

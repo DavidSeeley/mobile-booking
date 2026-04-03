@@ -30,6 +30,9 @@ import { FloatingLabelInput } from '@/components/floating-label-input';
 import { createSalesOrder, type SalesOrderSuccessResponse, validateSalesOrderData, formatApiError, buildSalesOrderPayload } from '../../../api/salesOrderApi';
 import { SalesOrderApiError } from '../../../api/types';
 import { loadAdminVars } from '@/mocks/AdminVar';
+import { useRoomSizes } from '@/hooks/useRoomSizes';
+import { useProfile } from '@/hooks/useProfile';
+import { RouteMap } from '@/components/route-map';
 import { useFormData, type ContactData, type AddressData, type WelcomeData, type InventoryData } from '@/context/FormContext';
 
 // ---------------------------------------------------------------------------
@@ -248,16 +251,6 @@ function DebugRow({
 }
 
 // ---------------------------------------------------------------------------
-// Styles
-// ---------------------------------------------------------------------------
-const ghostStyle: React.CSSProperties = {
-  background: 'transparent',
-  border: 'none',
-  boxShadow: 'none',
-  marginBottom: 0,
-};
-
-// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 const ROOM_LABELS: Record<string, string> = {
@@ -301,19 +294,10 @@ function SummaryRow({
   value: string;
 }) {
   return (
-    <div className="flex items-start gap-3 py-2 border-b border-gray-100 last:border-0">
-      <span className="shrink-0 mt-0.5 text-gray-400">{icon}</span>
-      <div className="flex flex-col min-w-0">
-        <span
-          className="text-gray-400"
-          style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}
-        >
-          {label}
-        </span>
-        <span className="text-gray-800 font-medium" style={{ fontSize: '15px' }}>
-          {value || '—'}
-        </span>
-      </div>
+    <div className="flex items-center gap-2 py-1.5 border-b border-gray-100 last:border-0">
+      <span className="shrink-0 text-gray-400">{icon}</span>
+      <span className="text-xs text-gray-400 uppercase tracking-wide shrink-0">{label}</span>
+      <span className="text-sm text-gray-800 font-medium ml-auto text-right">{value || '—'}</span>
     </div>
   );
 }
@@ -330,8 +314,7 @@ function EditActions({
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); onSave(); }}
-        className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-        style={{ fontSize: '14px' }}
+        className="inline-flex items-center gap-1.5 px-4 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
       >
         <Check className="h-4 w-4" />
         Save
@@ -339,8 +322,7 @@ function EditActions({
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); onCancel(); }}
-        className="inline-flex items-center gap-1.5 px-4 py-1.5 border border-gray-300 hover:bg-gray-50 text-gray-600 rounded-lg transition-colors"
-        style={{ fontSize: '14px' }}
+        className="inline-flex items-center gap-1.5 px-4 py-1.5 text-sm border border-gray-300 hover:bg-gray-50 text-gray-600 rounded-lg transition-colors"
       >
         <X className="h-4 w-4" />
         Cancel
@@ -355,6 +337,9 @@ function EditActions({
 export default function Confirmation() {
   const navigate = useNavigate();
   const { formData, setContact, setAddress, setWelcome } = useFormData();
+  const { roomSizes } = useRoomSizes();
+  const { profile } = useProfile();
+  const payeeName = profile?.company || [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Your Community';
 
   // Navigation guard
   useEffect(() => {
@@ -375,11 +360,11 @@ export default function Confirmation() {
   const welcomeData = formData.welcome;
   const inventoryData = formData.inventory;
 
-  // Estimated inventory totals (derived from inventoryData + AdminVar roomSizes)
+  // Estimated inventory totals (derived from inventoryData + Supabase roomSizes)
   const _adminVars = loadAdminVars();
   const furnitureScore = inventoryData
     ? inventoryData.selectedRooms.reduce((sum, roomId) => {
-        const row = _adminVars.roomSizes.find((r) => r.id === roomId);
+        const row = roomSizes.find((r) => r.id === roomId);
         if (!row) return sum;
         const multiplier = roomId === 'bedroom' ? inventoryData.bedroomCount : 1;
         return sum + row.fur * multiplier;
@@ -473,7 +458,8 @@ export default function Confirmation() {
       address:   addressData,
       welcome:   welcomeData,
       inventory: inventoryData,
-      email: contactEmail,
+      email:     contactEmail,
+      roomSizes,
     });
 
     // Pre-flight validation
@@ -528,11 +514,9 @@ export default function Confirmation() {
       submitStatus === 'idle';
 
     return (
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-3">
         {icon}
-        <h2 className="text-gray-900 font-bold" style={{ fontSize: '18px' }}>
-          {title}
-        </h2>
+        <h2 className="text-sm text-gray-900 font-bold">{title}</h2>
         {showPencil && (
           <button
             type="button"
@@ -540,7 +524,7 @@ export default function Confirmation() {
             className="ml-1 p-1 rounded hover:bg-gray-100 transition-colors"
             aria-label={`Edit ${title}`}
           >
-            <Pencil className="h-4 w-4 text-gray-400 hover:text-gray-700" />
+            <Pencil className="h-3.5 w-3.5 text-gray-400 hover:text-gray-700" />
           </button>
         )}
       </div>
@@ -576,29 +560,27 @@ export default function Confirmation() {
                 <PartyPopper className="h-10 w-10 text-green-600" />
               </span>
             </div>
-            <h1 className="text-gray-900 font-bold mb-3" style={{ fontSize: '26px' }}>
-              Order submitted!
-            </h1>
-            <p className="text-gray-600 mb-6" style={{ fontSize: '16px' }}>
+            <h1 className="text-xl text-gray-900 font-bold mb-3">Order submitted!</h1>
+            <p className="text-sm text-gray-600 mb-6">
               Thanks, {contactData?.firstName}! We've received your request and will be in touch soon.
             </p>
 
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 text-left flex flex-col gap-3">
               {orderId !== null && (
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500" style={{ fontSize: '13px' }}>Order ID</span>
-                  <span className="text-gray-900 font-bold" style={{ fontSize: '15px' }}>#{orderId}</span>
+                  <span className="text-xs text-gray-500">Order ID</span>
+                  <span className="text-sm text-gray-900 font-bold">#{orderId}</span>
                 </div>
               )}
               {leadId !== null && (
                 <div className="flex items-center justify-between border-t border-gray-100 pt-3">
-                  <span className="text-gray-500" style={{ fontSize: '13px' }}>Lead ID</span>
-                  <span className="text-gray-900 font-bold" style={{ fontSize: '15px' }}>#{leadId}</span>
+                  <span className="text-xs text-gray-500">Lead ID</span>
+                  <span className="text-sm text-gray-900 font-bold">#{leadId}</span>
                 </div>
               )}
               <div className="flex items-center justify-between border-t border-gray-100 pt-3">
-                <span className="text-gray-500" style={{ fontSize: '13px' }}>Confirmation sent to</span>
-                <span className="text-gray-900 font-medium" style={{ fontSize: '14px' }}>{contactData?.email ?? ''}</span>
+                <span className="text-xs text-gray-500">Confirmation sent to</span>
+                <span className="text-sm text-gray-900 font-medium">{contactData?.email ?? ''}</span>
               </div>
             </div>
           </div>
@@ -627,346 +609,193 @@ export default function Confirmation() {
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 px-8 md:px-10 py-11">
-        <div className="max-w-3xl flex flex-col gap-2">
+      <div className="flex-1 px-6 md:px-8 py-6 overflow-y-auto">
+        <div className="max-w-5xl">
 
           {/* Page heading */}
-          <div className="flex items-center gap-3 mb-2">
-            <CheckCircle className="h-7 w-7 text-green-500" />
-            <h1 className="text-gray-900 font-bold" style={{ fontSize: '24px' }}>
-              All done — here's your summary
-            </h1>
+          <div className="flex items-center gap-2 mb-4">
+            <CheckCircle className="h-5 w-5 text-green-500" />
+            <h1 className="text-base text-gray-900 font-bold">All done — here's your summary</h1>
           </div>
 
-          {/* ── Card 1: Contact info ─────────────────────────────────────── */}
-          <div {...cardWrapperProps('contact')}>
-            <DetailCard style={editingCard !== 'contact' ? ghostStyle : undefined}>
-              <CardHeader
-                cardKey="contact"
-                icon={<User className="h-5 w-5 text-gray-600" />}
-                title="Contact information"
-              />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-              {editingCard === 'contact' ? (
-                <>
-                  <div className="flex gap-4">
-                    <FloatingLabelInput
-                      label="First name"
-                      value={editContact.firstName}
-                      onChange={(e) => setEditContact((p) => ({ ...p, firstName: e.target.value }))}
-                    />
-                    <FloatingLabelInput
-                      label="Last name"
-                      value={editContact.lastName}
-                      onChange={(e) => setEditContact((p) => ({ ...p, lastName: e.target.value }))}
-                    />
-                  </div>
-                  <FloatingLabelInput
-                    label="Cell phone"
-                    format="phone"
-                    value={editContact.cellPhone}
-                    onChange={(e) => setEditContact((p) => ({ ...p, cellPhone: e.target.value }))}
-                  />
-                  <FloatingLabelInput
-                    label="E-mail"
-                    type="email"
-                    value={editContact.email}
-                    onChange={(e) => setEditContact((p) => ({ ...p, email: e.target.value }))}
-                  />
-                  <FloatingLabelInput
-                    label="Date of service"
-                    type="date"
-                    value={editContact.serviceDate}
-                    onChange={(e) => setEditContact((p) => ({ ...p, serviceDate: e.target.value }))}
-                  />
-                  <EditActions onSave={commitContact} onCancel={cancelEdit} />
-                </>
-              ) : contactData ? (
-                <div className="flex flex-col gap-0">
-                  <SummaryRow
-                    icon={<User className="h-4 w-4" />}
-                    label="Name"
-                    value={`${contactData.firstName} ${contactData.lastName}`.trim()}
-                  />
-                  <SummaryRow
-                    icon={<Phone className="h-4 w-4" />}
-                    label="Cell phone"
-                    value={contactData.cellPhone}
-                  />
-                  <SummaryRow
-                    icon={<Mail className="h-4 w-4" />}
-                    label="E-mail"
-                    value={contactData.email ?? ''}
-                  />
-                  <SummaryRow
-                    icon={<Calendar className="h-4 w-4" />}
-                    label="Date of service"
-                    value={contactData.serviceDateDisplay}
-                  />
+            {/* ── Column 1 ───────────────────────────────────────────────── */}
+            <div className="flex flex-col gap-4">
+
+              {/* Payee Card */}
+              <DetailCard>
+                <div className="flex items-center gap-2 mb-2">
+                  <Building2 className="h-4 w-4 text-gray-600" />
+                  <h2 className="text-sm text-gray-900 font-bold">{payeeName}</h2>
                 </div>
-              ) : (
-                <p
-                  className="text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-lg p-3"
-                  style={{ fontSize: '15px' }}
-                >
-                  No contact information saved. Please go back to step 2.
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  You're invited to take advantage of a great savings opportunity, and we hope it helps make your move a little less stressful. We want your move-in to be as convenient and smooth as possible, and we look forward to welcoming you as our newest resident!
                 </p>
-              )}
-            </DetailCard>
-          </div>
-
-          <hr className="border-t border-slate-500" />
-
-          {/* ── Card 2: Confirmed address ─────────────────────────────────── */}
-          <div {...cardWrapperProps('address')}>
-            <DetailCard style={editingCard !== 'address' ? ghostStyle : undefined}>
-              <CardHeader
-                cardKey="address"
-                icon={<Home className="h-5 w-5 text-gray-600" />}
-                title="Your confirmed address"
-              />
-
-              {editingCard === 'address' ? (
-                <>
-                  <FloatingLabelInput
-                    label="Street address"
-                    value={editAddress.street}
-                    onChange={(e) =>
-                      setEditAddress((p) => ({ ...p, street: e.target.value }))
-                    }
-                  />
-                  <div className="flex gap-4">
-                    <FloatingLabelInput
-                      label="City"
-                      value={editAddress.city}
-                      onChange={(e) =>
-                        setEditAddress((p) => ({ ...p, city: e.target.value }))
-                      }
-                    />
-                    <FloatingLabelInput
-                      label="State"
-                      value={editAddress.state}
-                      onChange={(e) =>
-                        setEditAddress((p) => ({ ...p, state: e.target.value }))
-                      }
-                      style={{ maxWidth: '80px' }}
-                    />
-                    <FloatingLabelInput
-                      label="Zip"
-                      value={editAddress.zipcode}
-                      onChange={(e) =>
-                        setEditAddress((p) => ({ ...p, zipcode: e.target.value }))
-                      }
-                      style={{ maxWidth: '100px' }}
-                    />
-                  </div>
-                  <EditActions onSave={commitAddress} onCancel={cancelEdit} />
-                </>
-              ) : addressData ? (
-                <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <MapPin className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-gray-900 font-semibold" style={{ fontSize: '17px' }}>
-                      {addressData.formattedAddress}
-                    </p>
-                    {addressData.lat !== null && addressData.lng !== null && (
-                      <p className="text-gray-500 mt-1" style={{ fontSize: '13px' }}>
-                        {addressData.lat.toFixed(6)}, {addressData.lng.toFixed(6)}
-                      </p>
-                    )}
-                  </div>
+                <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-3">
+                  <span className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Contribution</span>
+                  <span className="text-2xl font-bold" style={{ background: 'linear-gradient(135deg, #f97316, #ec4899, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                    ${(welcomeData?.allowance ?? 0).toLocaleString()}
+                  </span>
                 </div>
-              ) : (
-                <p
-                  className="text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-lg p-3"
-                  style={{ fontSize: '15px' }}
-                >
-                  No address saved. Please go back and confirm your address.
-                </p>
-              )}
-            </DetailCard>
-          </div>
+              </DetailCard>
 
-          <hr className="border-t border-slate-500" />
-
-          {/* ── Card 3: Moving destination ────────────────────────────────── */}
-          <div {...cardWrapperProps('destination')}>
-            <DetailCard style={editingCard !== 'destination' ? ghostStyle : undefined}>
-              <CardHeader
-                cardKey="destination"
-                icon={<Building2 className="h-5 w-5 text-gray-600" />}
-                title="Moving destination"
-              />
-
-              {editingCard === 'destination' ? (
-                <>
-                  <FloatingLabelInput
-                    label="Location name"
-                    value={editWelcome.locationLabel}
-                    onChange={(e) =>
-                      setEditWelcomeLocal((p) => ({ ...p, locationLabel: e.target.value }))
-                    }
-                  />
-                  <FloatingLabelInput
-                    label="Street address"
-                    value={editWelcome.locationStreet}
-                    onChange={(e) =>
-                      setEditWelcomeLocal((p) => ({ ...p, locationStreet: e.target.value }))
-                    }
-                  />
-                  <div className="flex gap-4">
-                    <FloatingLabelInput
-                      label="City"
-                      value={editWelcome.locationCity}
-                      onChange={(e) =>
-                        setEditWelcomeLocal((p) => ({ ...p, locationCity: e.target.value }))
-                      }
-                    />
-                    <FloatingLabelInput
-                      label="State"
-                      value={editWelcome.locationState}
-                      onChange={(e) =>
-                        setEditWelcomeLocal((p) => ({ ...p, locationState: e.target.value }))
-                      }
-                      style={{ maxWidth: '80px' }}
-                    />
-                    <FloatingLabelInput
-                      label="Zip"
-                      value={editWelcome.locationZip}
-                      onChange={(e) =>
-                        setEditWelcomeLocal((p) => ({ ...p, locationZip: e.target.value }))
-                      }
-                      style={{ maxWidth: '100px' }}
-                    />
-                  </div>
-                  <FloatingLabelInput
-                    label="Unit type"
-                    value={editWelcome.unitType}
-                    onChange={(e) =>
-                      setEditWelcomeLocal((p) => ({ ...p, unitType: e.target.value }))
-                    }
-                  />
-                  <EditActions onSave={commitWelcome} onCancel={cancelEdit} />
-                </>
-              ) : welcomeData ? (
-                <div className="flex flex-col gap-0">
-                  <SummaryRow
-                    icon={<MapPin className="h-4 w-4" />}
-                    label="Location"
-                    value={`${welcomeData.locationLabel} — ${welcomeData.locationStreet}, ${welcomeData.locationCity}, ${welcomeData.locationState} ${welcomeData.locationZip}`}
-                  />
-                  <SummaryRow
-                    icon={<BedDouble className="h-4 w-4" />}
-                    label="Unit type"
-                    value={welcomeData.unitType}
-                  />
-                </div>
-              ) : (
-                <p
-                  className="text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-lg p-3"
-                  style={{ fontSize: '15px' }}
-                >
-                  No destination saved. Please go back to step 1.
-                </p>
-              )}
-            </DetailCard>
-          </div>
-
-          <hr className="border-t border-slate-500" />
-
-          {/* ── Card 4: Inventory ─────────────────────────────────────────── */}
-          <div>
-            <DetailCard style={ghostStyle}>
-              <div className="flex items-center gap-2 mb-4">
-                <Package className="h-5 w-5 text-gray-600" />
-                <h2 className="text-gray-900 font-bold" style={{ fontSize: '18px' }}>
-                  Rooms selected
-                </h2>
+              {/* Contact Card */}
+              <div {...cardWrapperProps('contact')}>
+                <DetailCard>
+                  <CardHeader cardKey="contact" icon={<User className="h-4 w-4 text-gray-600" />} title="Contact information" />
+                  {editingCard === 'contact' ? (
+                    <>
+                      <div className="flex gap-3">
+                        <FloatingLabelInput label="First name" value={editContact.firstName} onChange={(e) => setEditContact((p) => ({ ...p, firstName: e.target.value }))} />
+                        <FloatingLabelInput label="Last name" value={editContact.lastName} onChange={(e) => setEditContact((p) => ({ ...p, lastName: e.target.value }))} />
+                      </div>
+                      <FloatingLabelInput label="Cell phone" format="phone" value={editContact.cellPhone} onChange={(e) => setEditContact((p) => ({ ...p, cellPhone: e.target.value }))} />
+                      <FloatingLabelInput label="E-mail" type="email" value={editContact.email} onChange={(e) => setEditContact((p) => ({ ...p, email: e.target.value }))} />
+                      <FloatingLabelInput label="Date of service" type="date" value={editContact.serviceDate} onChange={(e) => setEditContact((p) => ({ ...p, serviceDate: e.target.value }))} />
+                      <EditActions onSave={commitContact} onCancel={cancelEdit} />
+                    </>
+                  ) : contactData ? (
+                    <div className="flex flex-col">
+                      <SummaryRow icon={<User className="h-3.5 w-3.5" />} label="Name" value={`${contactData.firstName} ${contactData.lastName}`.trim()} />
+                      <SummaryRow icon={<Phone className="h-3.5 w-3.5" />} label="Cell phone" value={contactData.cellPhone} />
+                      <SummaryRow icon={<Mail className="h-3.5 w-3.5" />} label="E-mail" value={contactData.email ?? ''} />
+                      <SummaryRow icon={<Calendar className="h-3.5 w-3.5" />} label="Date of service" value={contactData.serviceDateDisplay} />
+                    </div>
+                  ) : (
+                    <p className="text-xs text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-lg p-3">No contact information saved. Please go back to step 2.</p>
+                  )}
+                </DetailCard>
               </div>
-              {inventoryData && inventoryData.selectedRooms.length > 0 ? (
-                <>
-                  <div className="flex flex-wrap gap-2">
-                    {inventoryData.selectedRooms.map((room) => (
-                      <span
-                        key={room}
-                        className="inline-flex items-center px-3 py-1 bg-blue-50 border border-blue-200 text-blue-800 rounded-full"
-                        style={{ fontSize: '14px', fontWeight: 600 }}
-                      >
-                        {roomLabel(room, inventoryData.bedroomCount)}
-                      </span>
-                    ))}
-                  </div>
 
-                  {/* Estimated Inventory totals */}
-                  <div className="mt-4 pt-4 border-t border-gray-100">
-                    <p
-                      className="text-gray-500 mb-3"
-                      style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}
-                    >
-                      Estimated Inventory
-                    </p>
-                    <div className="flex gap-8">
-                      <div className="flex flex-col">
-                        <span
-                          className="text-gray-400"
-                          style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}
-                        >
-                          Furniture Score
-                        </span>
-                        <span className="text-gray-800 font-medium" style={{ fontSize: '22px' }}>
-                          {furnitureScore}
-                        </span>
+            </div>
+
+            {/* ── Column 2 ───────────────────────────────────────────────── */}
+            <div className="flex flex-col gap-4">
+
+              {/* Address Card */}
+              <div {...cardWrapperProps('address')}>
+                <DetailCard>
+                  <CardHeader cardKey="address" icon={<Home className="h-4 w-4 text-gray-600" />} title="Your confirmed address" />
+                  {editingCard === 'address' ? (
+                    <>
+                      <FloatingLabelInput label="Street address" value={editAddress.street} onChange={(e) => setEditAddress((p) => ({ ...p, street: e.target.value }))} />
+                      <div className="flex gap-3">
+                        <FloatingLabelInput label="City" value={editAddress.city} onChange={(e) => setEditAddress((p) => ({ ...p, city: e.target.value }))} />
+                        <FloatingLabelInput label="State" value={editAddress.state} onChange={(e) => setEditAddress((p) => ({ ...p, state: e.target.value }))} style={{ maxWidth: '80px' }} />
+                        <FloatingLabelInput label="Zip" value={editAddress.zipcode} onChange={(e) => setEditAddress((p) => ({ ...p, zipcode: e.target.value }))} style={{ maxWidth: '100px' }} />
                       </div>
-                      <div className="flex flex-col">
-                        <span
-                          className="text-gray-400"
-                          style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}
-                        >
-                          Box Count
-                        </span>
-                        <span className="text-gray-800 font-medium" style={{ fontSize: '22px' }}>
-                          {boxCount}
-                        </span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span
-                          className="text-gray-400"
-                          style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}
-                        >
-                          Misc Score
-                        </span>
-                        <span className="text-gray-800 font-medium" style={{ fontSize: '22px' }}>
-                          {miscScore}
-                        </span>
+                      <EditActions onSave={commitAddress} onCancel={cancelEdit} />
+                    </>
+                  ) : addressData ? (
+                    <div className="flex items-start gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <MapPin className="h-4 w-4 text-green-600 mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-sm text-gray-900 font-semibold">{addressData.formattedAddress}</p>
+                        {addressData.lat !== null && addressData.lng !== null && (
+                          <p className="text-xs text-gray-500 mt-0.5">{addressData.lat.toFixed(6)}, {addressData.lng.toFixed(6)}</p>
+                        )}
                       </div>
                     </div>
-                  </div>
-                </>
-              ) : (
-                <p
-                  className="text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-lg p-3"
-                  style={{ fontSize: '15px' }}
-                >
-                  No rooms selected. Please go back and select your inventory.
-                </p>
-              )}
-            </DetailCard>
-          </div>
+                  ) : (
+                    <p className="text-xs text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-lg p-3">No address saved. Please go back and confirm your address.</p>
+                  )}
+                </DetailCard>
+              </div>
 
-          {/* ── API error banner ──────────────────────────────────────────── */}
+              {/* Destination Card */}
+              <div {...cardWrapperProps('destination')}>
+                <DetailCard>
+                  <CardHeader cardKey="destination" icon={<Building2 className="h-4 w-4 text-gray-600" />} title="Moving destination" />
+                  {editingCard === 'destination' ? (
+                    <>
+                      <FloatingLabelInput label="Location name" value={editWelcome.locationLabel} onChange={(e) => setEditWelcomeLocal((p) => ({ ...p, locationLabel: e.target.value }))} />
+                      <FloatingLabelInput label="Street address" value={editWelcome.locationStreet} onChange={(e) => setEditWelcomeLocal((p) => ({ ...p, locationStreet: e.target.value }))} />
+                      <div className="flex gap-3">
+                        <FloatingLabelInput label="City" value={editWelcome.locationCity} onChange={(e) => setEditWelcomeLocal((p) => ({ ...p, locationCity: e.target.value }))} />
+                        <FloatingLabelInput label="State" value={editWelcome.locationState} onChange={(e) => setEditWelcomeLocal((p) => ({ ...p, locationState: e.target.value }))} style={{ maxWidth: '80px' }} />
+                        <FloatingLabelInput label="Zip" value={editWelcome.locationZip} onChange={(e) => setEditWelcomeLocal((p) => ({ ...p, locationZip: e.target.value }))} style={{ maxWidth: '100px' }} />
+                      </div>
+                      <FloatingLabelInput label="Unit type" value={editWelcome.unitType} onChange={(e) => setEditWelcomeLocal((p) => ({ ...p, unitType: e.target.value }))} />
+                      <EditActions onSave={commitWelcome} onCancel={cancelEdit} />
+                    </>
+                  ) : welcomeData ? (
+                    <div className="flex flex-col">
+                      <SummaryRow icon={<MapPin className="h-3.5 w-3.5" />} label="Location" value={`${welcomeData.locationLabel} — ${welcomeData.locationStreet}, ${welcomeData.locationCity}, ${welcomeData.locationState} ${welcomeData.locationZip}`} />
+                      <SummaryRow icon={<BedDouble className="h-3.5 w-3.5" />} label="Unit type" value={welcomeData.unitType} />
+                    </div>
+                  ) : (
+                    <p className="text-xs text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-lg p-3">No destination saved. Please go back to step 1.</p>
+                  )}
+                </DetailCard>
+              </div>
+
+              {/* Inventory Card */}
+              <DetailCard>
+                <div className="flex items-center gap-2 mb-3">
+                  <Package className="h-4 w-4 text-gray-600" />
+                  <h2 className="text-sm text-gray-900 font-bold">Rooms selected</h2>
+                </div>
+                {inventoryData && inventoryData.selectedRooms.length > 0 ? (
+                  <>
+                    <div className="flex flex-wrap gap-1.5">
+                      {inventoryData.selectedRooms.map((room) => (
+                        <span key={room} className="inline-flex items-center px-2 py-0.5 text-xs font-semibold bg-blue-50 border border-blue-200 text-blue-800 rounded-full">
+                          {roomLabel(room, inventoryData.bedroomCount)}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="mt-3 pt-3 border-t border-gray-100">
+                      <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-2">Estimated Inventory</p>
+                      <div className="flex gap-6">
+                        <div className="flex flex-col">
+                          <span className="text-xs text-gray-400 uppercase tracking-wide">Furniture</span>
+                          <span className="text-lg text-gray-800 font-medium">{furnitureScore}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-xs text-gray-400 uppercase tracking-wide">Boxes</span>
+                          <span className="text-lg text-gray-800 font-medium">{boxCount}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-xs text-gray-400 uppercase tracking-wide">Misc</span>
+                          <span className="text-lg text-gray-800 font-medium">{miscScore}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-xs text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-lg p-3">No rooms selected. Please go back and select your inventory.</p>
+                )}
+              </DetailCard>
+
+            </div>{/* end column 2 */}
+          </div>{/* end grid */}
+
+          {/* ── Route Map ────────────────────────────────────────────────── */}
+          {addressData && welcomeData && (
+            <DetailCard className="mt-4">
+              <div className="flex items-center gap-2 mb-3">
+                <MapPin className="h-4 w-4 text-gray-600" />
+                <h2 className="text-sm text-gray-900 font-bold">Route</h2>
+                <span className="text-xs text-gray-400 ml-1">{addressData.formattedAddress} → {welcomeData.locationStreet}, {welcomeData.locationCity}, {welcomeData.locationState} {welcomeData.locationZip}</span>
+              </div>
+              <RouteMap
+                origin={addressData.formattedAddress}
+                destination={`${welcomeData.locationStreet}, ${welcomeData.locationCity}, ${welcomeData.locationState} ${welcomeData.locationZip}`}
+              />
+            </DetailCard>
+          )}
+
+          {/* ── API error banner ─────────────────────────────────────────── */}
           {submitStatus === 'error' && debugInfo && (
-            <DebugErrorPanel info={debugInfo} />
+            <div className="mt-4"><DebugErrorPanel info={debugInfo} /></div>
           )}
           {submitStatus === 'error' && submitError && !debugInfo && (
-            <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
-              <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 shrink-0" />
+            <div className="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-xl mt-4">
+              <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
               <div>
-                <p className="text-red-800 font-semibold" style={{ fontSize: '14px' }}>
-                  Submission failed
-                </p>
-                <p className="text-red-700 mt-0.5" style={{ fontSize: '13px' }}>
-                  {submitError}
-                </p>
+                <p className="text-sm text-red-800 font-semibold">Submission failed</p>
+                <p className="text-xs text-red-700 mt-0.5">{submitError}</p>
               </div>
             </div>
           )}

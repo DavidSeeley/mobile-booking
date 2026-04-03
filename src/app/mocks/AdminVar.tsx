@@ -53,7 +53,6 @@ export interface ConverterRow {
 }
 
 export interface AdminVars {
-  roomSizes: RoomSizeRow[];
   truckSizes: TruckSizeRow[];
   loadSizes: LoadSizeRow[];
   addedItems: AddedItemRow[];
@@ -125,12 +124,6 @@ export function loadAdminVars(): AdminVars {
     if (!raw) return getDefaults();
     const parsed = JSON.parse(raw) as Partial<AdminVars>;
     return {
-      roomSizes: parsed.roomSizes
-        ? parsed.roomSizes.map((stored) => {
-            const def = DEFAULT_ROOM_SIZES.find((d) => d.id === stored.id);
-            return { ...def, ...stored };
-          })
-        : DEFAULT_ROOM_SIZES,
       truckSizes:     parsed.truckSizes     ?? DEFAULT_TRUCK_SIZES,
       loadSizes:      parsed.loadSizes      ?? DEFAULT_LOAD_SIZES,
       addedItems:     DEFAULT_ADDED_ITEMS,
@@ -159,7 +152,6 @@ export function saveAdminVars(vars: AdminVars): void {
 
 function getDefaults(): AdminVars {
   return {
-    roomSizes:      DEFAULT_ROOM_SIZES,
     truckSizes:     DEFAULT_TRUCK_SIZES,
     loadSizes:      DEFAULT_LOAD_SIZES,
     addedItems:     DEFAULT_ADDED_ITEMS,

@@ -7,26 +7,26 @@
  * asks how many bedrooms to move (counter capped at unit size).
  */
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Settings, Package, Minus, Plus, Drill } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import logoImage from '../../../assets/BookingLogo.png';
-import studioIcon from '../../../assets/06eb3ca5921fb03a6bb0238bcaf80aba38d4e054.png';
-import patioIcon from '../../../assets/8943458be974aeb1108b0ee60ce930c2c0c1c6d9.png';
-import bedroomIcon from '../../../assets/5e2ebe5fef192d372ef3a3fd21b01e93025954a8.png';
-import denIcon from '../../../assets/9a0456c7e74ff390323b2ae3eaa5c4f0ec01f471.png';
-import livingRoomIcon from '../../../assets/9f7524cb218b8a5f352bb2471a8b7b228b74491e.png';
-import diningIcon from '../../../assets/fddbffd28cbdaa13ffcecad75e2eca38dd5063fb.png';
+import studioIcon from '../../../assets/Studio.png';
+import patioIcon from '../../../assets/Patio.png';
+import bedroomIcon from '../../../assets/Bedroom.png';
+import denIcon from '../../../assets/Den.png';
+import livingRoomIcon from '../../../assets/LivingRoom.png';
+import diningIcon from '../../../assets/Kitchen.png';
 import { useAppStarted } from '@/hooks/useAppStarted';
 import { useFormData } from '@/context/FormContext';
 
 const LOAD_SIZES = [
-  { id: 'studio',      label: 'Studio',      icon: studioIcon,      scale: 1.248 },
-  { id: 'bedroom',     label: 'Bedroom',     icon: bedroomIcon,     scale: 1.56 },
-  { id: 'living-room', label: 'Living Room', icon: livingRoomIcon,  scale: 1.56 },
-  { id: 'dining',      label: 'Dining',      icon: diningIcon,      scale: 1.56 },
-  { id: 'den',         label: 'Den',         icon: denIcon,         scale: 1.56 },
-  { id: 'patio',       label: 'Patio',       icon: patioIcon,       scale: 1.56 },
+  { id: 'studio',      label: 'Studio',      icon: studioIcon,     scale: 1.56 },
+  { id: 'bedroom',     label: 'Bedroom',     icon: bedroomIcon,    scale: 1.56 },
+  { id: 'living-room', label: 'Living Room', icon: livingRoomIcon, scale: 1.56 },
+  { id: 'dining',      label: 'Dining',      icon: diningIcon,     scale: 1.56 },
+  { id: 'den',         label: 'Den',         icon: denIcon,        scale: 1.56 },
+  { id: 'patio',       label: 'Patio',       icon: patioIcon,      scale: 1.56 },
 ];
 
 export default function Inventory() {
@@ -128,7 +128,7 @@ export default function Inventory() {
                     src={option.icon}
                     alt={option.label}
                     className="load-size-icon"
-                    style={option.scale !== 1 ? { transform: `scale(${option.scale})` } : undefined}
+                    style={{ transform: `scale(${option.scale})` }}
                   />
                 </div>
                 <span className="load-size-label">{option.label}</span>
@@ -185,11 +185,12 @@ export default function Inventory() {
           </button>
           <button
             type="button"
+            disabled={disassembleBeds === undefined}
             onClick={() => {
               setInventory({ selectedRooms: selectedLoadSize, bedroomCount, disassembleBeds });
               navigate('/miscellaneous');
             }}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl inline-flex items-center gap-1 transition-colors"
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl inline-flex items-center gap-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Next
             <span className="text-base">→</span>

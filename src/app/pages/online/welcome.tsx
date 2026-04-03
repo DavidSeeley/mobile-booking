@@ -77,6 +77,7 @@ export default function Welcome() {
       return;
     }
     if (selectedAddress) {
+      const matched = aptSizes.find((a) => a.name === unit.trim());
       setWelcome({
         locationLabel: selectedAddress.name,
         locationStreet: selectedAddress.address,
@@ -84,6 +85,7 @@ export default function Welcome() {
         locationState: selectedAddress.state,
         locationZip: selectedAddress.zip,
         unitType: unit.trim(),
+        allowance: matched?.allowance ?? 0,
       });
       navigate('/contact', {
         state: {

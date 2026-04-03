@@ -42,3 +42,11 @@ export interface BuildingAptSizeRow {
   name: string;
   allowance: number;
 }
+
+export interface RoomSizeRow {
+  id: string;
+  name: string;
+  ratio: number;
+  fur: number;
+  sort_order: number;
+}

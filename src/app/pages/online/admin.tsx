@@ -15,40 +15,46 @@ import {
   saveAdminVars,
   DEFAULT_CONVERTER,
 } from '../../mocks/AdminVar';
+import { useRoomSizes } from '../../hooks/useRoomSizes';
 
 export default function Admin() {
   const navigate = useNavigate();
 
+  const { roomSizes, saveRoomSizes } = useRoomSizes();
   const _initial = loadAdminVars();
-  const [roomSizes, setRoomSizes]   = useState(_initial.roomSizes);
   const [truckSizes, setTruckSizes] = useState(_initial.truckSizes);
   const [loadSizes, setLoadSizes]   = useState(_initial.loadSizes);
   const [addedItems, setAddedItems] = useState(_initial.addedItems);
   const [converter, setConverter]   = useState(_initial.converter);
   const [saved, setSaved]           = useState(false);
+  const [localRoomSizes, setLocalRoomSizes] = useState(roomSizes);
 
   // Mirror ref — always holds committed state; safe to read in event handlers
-  const latestRef = useRef({ roomSizes, truckSizes, loadSizes, addedItems, converter });
+  const latestRef = useRef({ truckSizes, loadSizes, addedItems, converter });
   useEffect(() => {
-    latestRef.current = { roomSizes, truckSizes, loadSizes, addedItems, converter };
+    latestRef.current = { truckSizes, loadSizes, addedItems, converter };
   });
+
+  useEffect(() => { setLocalRoomSizes(roomSizes); }, [roomSizes]);
 
   // Explicit save — called by the Save button
   const handleSave = useCallback(() => {
     saveAdminVars(latestRef.current);
+    saveRoomSizes(localRoomSizes);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
-  }, []);
+  }, [saveRoomSizes, localRoomSizes]);
 
   // Auto-save on field blur (secondary safety net)
   function handleBlur() {
     saveAdminVars(latestRef.current);
+    saveRoomSizes(localRoomSizes);
   }
 
-  function handleRoomChange(id: string, field: 'ratio' | 'fur', value: string) {
+  function handleRoomChange(id: string, value: string) {
     const num = value === '' ? 0 : parseFloat(value);
-    setRoomSizes(prev =>
-      prev.map(row => row.id === id ? { ...row, [field]: isNaN(num) ? 0 : num } : row)
+    setLocalRoomSizes(prev =>
+      prev.map(row => row.id === id ? { ...row, fur: isNaN(num) ? 0 : num } : row)
     );
   }
 
@@ -131,33 +137,24 @@ export default function Admin() {
             <div className="px-4 py-3 border-b border-gray-200">
               <span className="admin-card-title font-bold text-gray-900">Rooms</span>
             </div>
-            <div className="admin-table-header grid grid-cols-3 px-4 py-2">
+            <div className="admin-table-header grid grid-cols-2 px-4 py-2">
               <span className="admin-table-cell font-bold text-white">Name</span>
-              <span className="admin-table-cell font-bold text-white text-center">Ratio</span>
               <span className="admin-table-cell font-bold text-white text-center">Fur</span>
             </div>
-            {roomSizes.map((row, index) => (
+            {localRoomSizes.map((row, index) => (
               <div key={row.id}>
-                <div className="grid grid-cols-3 px-4 py-4 bg-white items-center">
+                <div className="grid grid-cols-2 px-4 py-4 bg-white items-center">
                   <span className="admin-table-cell text-gray-800 text-center">{row.name}</span>
                   <input
                     type="number"
-                    value={row.ratio ?? 0}
-                    onChange={(e) => handleRoomChange(row.id, 'ratio', e.target.value)}
-                    onBlur={handleBlur}
-                    className="admin-table-cell text-gray-800 text-center bg-transparent border-none outline-none w-full"
-                  />
-                  <input
-                    type="number"
                     value={row.fur ?? 0}
-                    onChange={(e) => handleRoomChange(row.id, 'fur', e.target.value)}
+                    onChange={(e) => handleRoomChange(row.id, e.target.value)}
                     onBlur={handleBlur}
                     className="admin-table-cell text-gray-800 text-center bg-transparent border-none outline-none w-full"
                   />
                 </div>
-                {index < roomSizes.length - 1 && (
-                  <div className="grid grid-cols-3 px-4">
-                    <div className="border-t border-gray-200"></div>
+                {index < localRoomSizes.length - 1 && (
+                  <div className="grid grid-cols-2 px-4">
                     <div className="border-t border-gray-200"></div>
                     <div className="border-t border-gray-200"></div>
                   </div>

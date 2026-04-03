@@ -44,6 +44,9 @@ export default function Miscellaneous() {
   const [boxCount, setBoxCount] = useState<number>(
     () => formData.miscellaneous?.boxCount ?? 1
   );
+  const [boxCountTouched, setBoxCountTouched] = useState<boolean>(
+    () => formData.miscellaneous?.boxCount !== undefined
+  );
 
   const toggleCategory = (id: string) => {
     setSelectedCategories(prev =>
@@ -131,7 +134,7 @@ export default function Miscellaneous() {
                 max={SLIDER_MAX}
                 step={1}
                 value={boxCount}
-                onChange={e => setBoxCount(Number(e.target.value))}
+                onChange={e => { setBoxCount(Number(e.target.value)); setBoxCountTouched(true); }}
                 className="w-full appearance-none h-2 rounded-full outline-none cursor-pointer"
                 style={{
                   background: `linear-gradient(to right, var(--blue-600, #2563eb) ${sliderPercent}%, #d1d5db ${sliderPercent}%)`,
@@ -157,11 +160,12 @@ export default function Miscellaneous() {
           </button>
           <button
             type="button"
+            disabled={!boxCountTouched}
             onClick={() => {
               setMiscellaneous({ selectedCategories, boxCount });
               navigate('/confirmation');
             }}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl inline-flex items-center gap-1 transition-colors"
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl inline-flex items-center gap-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Next
             <span className="text-base">→</span>
