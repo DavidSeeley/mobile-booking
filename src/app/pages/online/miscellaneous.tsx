@@ -8,7 +8,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Settings, Package, Box } from 'lucide-react';
+import { Guitar, Box } from 'lucide-react';
 import logoImage from '../../../assets/BookingLogo.png';
 import lampsImage from '../../../assets/Lamps.png';
 import cleaningImage from '../../../assets/Cleaning.png';
@@ -21,12 +21,12 @@ import { useFormData } from '@/context/FormContext';
 import '@/types'; // Import type definitions
 
 const MISC_CATEGORIES = [
-  { id: 'lighting', label: 'Lighting', image: lampsImage },
-  { id: 'cleaning', label: 'Cleaning', image: cleaningImage },
-  { id: 'tvs-monitors', label: 'TVs and Monitors', image: screensImage },
-  { id: 'music-equipment', label: 'Music Equipment', image: musicImage },
-  { id: 'sporting-goods', label: 'Sporting Goods', image: sportingImage },
-  { id: 'kids-stuff', label: 'Kids Stuff', image: kidsImage },
+  { id: 'lighting',        label: 'Lighting',        image: lampsImage,    scale: 1.20 },
+  { id: 'cleaning',        label: 'Cleaning',        image: cleaningImage, scale: 1.20 },
+  { id: 'tvs-monitors',    label: 'TVs and Monitors', image: screensImage,  scale: 1.20 },
+  { id: 'music-equipment', label: 'Music Equipment', image: musicImage,    scale: 1.20 },
+  { id: 'sporting-goods',  label: 'Sporting Goods',  image: sportingImage, scale: 1.20 },
+  { id: 'kids-stuff',      label: 'Kids Stuff',      image: kidsImage,     scale: 1.20 },
 ];
 
 const SLIDER_MIN = 1;
@@ -62,28 +62,52 @@ export default function Miscellaneous() {
       {/* Header */}
       <header className="w-full px-6 md:px-8 py-2 flex items-center justify-between bg-white flex-shrink-0">
         <img src={logoImage} alt="Local Motion" className="h-7 w-auto" />
-        <button
-          type="button"
-          onClick={() => navigate('/admin')}
-          className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
-          aria-label="Settings"
-        >
-          <Settings className="h-4 w-4 text-gray-700" />
-        </button>
       </header>
 
       {/* Main Content */}
       <div className="flex-1 px-6 md:px-8 py-3 overflow-y-auto">
         <div className="max-w-3xl">
 
+          {/* Box Count Slider */}
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Box className="h-5 w-5 text-orange-500 flex-shrink-0" />
+              <h2 className="text-gray-900 font-bold" style={{ fontSize: '16px' }}>
+                How many boxes would you like moved?
+              </h2>
+              <span
+                className="font-bold text-blue-600 bg-blue-50 rounded-lg px-2 py-0.5 flex-shrink-0"
+                style={{ fontSize: '16px', minWidth: '2.5rem', textAlign: 'center' }}
+              >
+                {boxCount}
+              </span>
+            </div>
+            <div className="relative px-1">
+              <input
+                type="range"
+                min={SLIDER_MIN}
+                max={SLIDER_MAX}
+                step={1}
+                value={boxCount}
+                onChange={e => { setBoxCount(Number(e.target.value)); setBoxCountTouched(true); }}
+                className="w-full appearance-none h-2 rounded-full outline-none cursor-pointer"
+                style={{
+                  background: `linear-gradient(to right, var(--blue-600, #2563eb) ${sliderPercent}%, #d1d5db ${sliderPercent}%)`,
+                }}
+              />
+            </div>
+          </div>
+
+          <hr className="my-4 border-gray-200" />
+
           {/* Page Title */}
-          <div className="flex items-center gap-2 mb-3">
-            <Package className="h-4 w-4 text-orange-500" />
+          <div className="flex items-center gap-2 mb-5">
+            <Guitar className="h-5 w-5 text-pink-500" />
             <h1 className="text-gray-900 font-bold" style={{ fontSize: '16px' }}>What unboxed items are we moving?</h1>
           </div>
 
           {/* Category Options */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
             {MISC_CATEGORIES.map((option) => (
               <button
                 key={option.id}
@@ -98,6 +122,7 @@ export default function Miscellaneous() {
                       src={option.image}
                       alt={option.label}
                       className="load-size-icon"
+                      style={{ transform: `scale(${option.scale})` }}
                     />
                   ) : (
                     <div className="load-size-icon-placeholder">
@@ -110,39 +135,6 @@ export default function Miscellaneous() {
             ))}
           </div>
 
-          {/* Box Count Slider */}
-          <hr className="my-4 border-gray-200" />
-          <div className="mt-0">
-            <div className="flex items-center gap-2 mb-3">
-              <Box className="h-4 w-4 text-orange-500 flex-shrink-0" />
-              <h2 className="text-gray-900 font-bold" style={{ fontSize: '16px' }}>
-                How many boxes would you like moved?
-              </h2>
-              <span
-                className="font-bold text-blue-600 bg-blue-50 rounded-lg px-2 py-0.5 flex-shrink-0"
-                style={{ fontSize: '16px', minWidth: '2.5rem', textAlign: 'center' }}
-              >
-                {boxCount}
-              </span>
-            </div>
-
-            {/* Slider + ticks */}
-            <div className="relative px-1">
-              <input
-                type="range"
-                min={SLIDER_MIN}
-                max={SLIDER_MAX}
-                step={1}
-                value={boxCount}
-                onChange={e => { setBoxCount(Number(e.target.value)); setBoxCountTouched(true); }}
-                className="w-full appearance-none h-2 rounded-full outline-none cursor-pointer"
-                style={{
-                  background: `linear-gradient(to right, var(--blue-600, #2563eb) ${sliderPercent}%, #d1d5db ${sliderPercent}%)`,
-                }}
-              />
-
-            </div>
-          </div>
 
         </div>
       </div>

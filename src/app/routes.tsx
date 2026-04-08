@@ -17,8 +17,9 @@ import Address from "./pages/online/address";
 import Inventory from "./pages/online/inventory";
 import Miscellaneous from "./pages/online/miscellaneous";
 import Confirmation from "./pages/online/confirmation";
-import Admin from "./pages/online/admin";
-import Profile from "./pages/online/profile";
+import Admin from "./pages/admin/admin";
+import Payees from "./pages/admin/payee";
+import Profile from "./pages/profile/profile";
 
 // Redirect helpers — used for removed routes and catch-all
 function RedirectToAddress() { return <Navigate to="/address" replace />; }
@@ -34,6 +35,7 @@ export const router = createBrowserRouter([
   { path: "/miscellaneous", Component: Miscellaneous },
   { path: "/confirmation", Component: Confirmation },
   { path: "/admin",        Component: Admin },
+  { path: "/admin/payees", Component: Payees },
   { path: "/profile",      Component: Profile },
   { path: "*",             Component: RedirectToRoot },     // catch-all
 ]);

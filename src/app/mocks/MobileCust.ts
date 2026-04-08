@@ -44,6 +44,7 @@ export interface SavedContact {
   email: string;
   serviceDate: string; // YYYY-MM-DD
   serviceDateDisplay: string; // "March 22, 2026"
+  preferredTime?: 'morning' | 'afternoon';
 }
 
 let _savedContact: SavedContact | null = null;
@@ -67,6 +68,9 @@ export interface SavedAddress {
   zipcode: string;
   lat: number | null;
   lng: number | null;
+  homeType?: string;
+  homeTypeId?: number;
+  homeTypeRatio?: number;
 }
 
 let _savedAddress: SavedAddress | null = null;
@@ -116,6 +120,7 @@ export function getSavedInventory(): SavedInventory | null {
 // ---------------------------------------------------------------------------
 export interface SavedMiscellaneous {
   selectedCategories: string[];
+  boxCount: number;
   packFragile?: boolean;
 }
 

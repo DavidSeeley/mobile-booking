@@ -20,8 +20,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { 
-  CheckCircle, Settings, MapPin, Calendar, Package, Home, User, Loader2, AlertCircle,
-  Pencil, Phone, Mail, Check, X, ChevronUp, ChevronDown, 
+  CheckCircle, MapPin, Calendar, Package, Home, User, Loader2, AlertCircle,
+  Pencil, Phone, Mail, Check, X, ChevronUp, ChevronDown, Sun, Cloud,
   ClipboardCopy, ClipboardCheck, PartyPopper, Building2, BedDouble
 } from 'lucide-react';
 import logoImage from '../../../assets/BookingLogo.png';
@@ -34,25 +34,7 @@ import { useRoomSizes } from '@/hooks/useRoomSizes';
 import { useProfile } from '@/hooks/useProfile';
 import { RouteMap } from '@/components/route-map';
 import { useFormData, type ContactData, type AddressData, type WelcomeData, type InventoryData } from '@/context/FormContext';
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-type CardKey = 'contact' | 'address' | 'destination';
-type SubmitStatus = 'idle' | 'submitting' | 'success' | 'error';
-
-interface SubmitDebugInfo {
-  timestamp: string;
-  requestUrl?: string;
-  httpStatus: number;
-  errorMessage: string;
-  apiStatus?: string;
-  apiMessage?: string;
-  apiLevel?: number;
-  apiParams?: Record<string, string | number>;
-  rawBody?: string;
-  sentPayload?: string; // raw form-url-encoded string
-}
+import type { CardKey, SubmitStatus, SubmitDebugInfo } from '@/types/confirmation';
 
 // ---------------------------------------------------------------------------
 // Debug helpers
@@ -93,6 +75,11 @@ function buildCopyText(info: SubmitDebugInfo): string {
     `Error       : ${info.errorMessage}`,
   ];
   if (info.requestUrl) lines.push(`Request URL : ${info.requestUrl}`);
+  if (info.errorName && info.errorName !== 'SalesOrderApiError') {
+    lines.push('', '--- JavaScript Error ---');
+    lines.push(`  Name  : ${info.errorName}`);
+    if (info.errorStack) lines.push(`  Stack :\n${info.errorStack}`);
+  }
   if (info.apiStatus)  lines.push(`API Status  : ${info.apiStatus}`);
   if (info.apiMessage) lines.push(`API Message : ${info.apiMessage}`);
   if (info.apiLevel !== undefined) lines.push(`API Level   : ${info.apiLevel}`);
@@ -173,6 +160,23 @@ function DebugErrorPanel({ info }: { info: SubmitDebugInfo }) {
             <DebugRow label="Timestamp"   value={info.timestamp} />
             {info.requestUrl && <DebugRow label="URL" value={info.requestUrl} mono />}
           </div>
+
+          {/* JavaScript Error — shown when a code bug (not an API error) caused the failure */}
+          {info.errorName && info.errorName !== 'SalesOrderApiError' && (
+            <div className="px-4 py-3 flex flex-col gap-1">
+              <span className="text-gray-500 uppercase tracking-widest confirmation-debug-section-label">JavaScript Error</span>
+              <DebugRow label="Type"    value={info.errorName} highlight />
+              <DebugRow label="Message" value={info.errorMessage} />
+              {info.errorStack && (
+                <div className="flex gap-3 items-start mt-1">
+                  <span className="text-gray-500 shrink-0 confirmation-debug-row-label">Stack</span>
+                  <pre className="text-orange-300 whitespace-pre-wrap break-all leading-relaxed confirmation-debug-pre flex-1">
+                    {info.errorStack}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* API Response */}
           {(info.apiStatus || info.apiMessage || info.apiLevel !== undefined || info.apiParams) && (
@@ -296,8 +300,8 @@ function SummaryRow({
   return (
     <div className="flex items-center gap-2 py-1.5 border-b border-gray-100 last:border-0">
       <span className="shrink-0 text-gray-400">{icon}</span>
-      <span className="text-xs text-gray-400 uppercase tracking-wide shrink-0">{label}</span>
-      <span className="text-sm text-gray-800 font-medium ml-auto text-right">{value || '—'}</span>
+      <span className="text-xs text-gray-500 shrink-0">{label}</span>
+      <span className="text-xs text-gray-800 font-medium ml-auto text-right">{value || '—'}</span>
     </div>
   );
 }
@@ -336,9 +340,9 @@ function EditActions({
 // ---------------------------------------------------------------------------
 export default function Confirmation() {
   const navigate = useNavigate();
-  const { formData, setContact, setAddress, setWelcome } = useFormData();
+  const { formData, setContact, setAddress } = useFormData();
   const { roomSizes } = useRoomSizes();
-  const { profile } = useProfile();
+  const { profile, member } = useProfile();
   const payeeName = profile?.company || [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Your Community';
 
   // Navigation guard
@@ -375,6 +379,7 @@ export default function Confirmation() {
     const row = _adminVars.addedItems.find((r) => r.id === catId);
     return sum + (row?.ratio ?? 0);
   }, 0);
+  const ratingTotal = (addressData?.homeTypeRatio ?? 1) + (inventoryData?.disassembleBeds ? 2 : 0);
 
   // Inline-edit working copies
   const [editContact, setEditContact] = useState<ContactData>({
@@ -383,11 +388,6 @@ export default function Confirmation() {
   const [editAddress, setEditAddress] = useState<AddressData>({
     formattedAddress: '', street: '', city: '', state: '', zipcode: '', lat: null, lng: null,
   });
-  const [editWelcome, setEditWelcomeLocal] = useState<WelcomeData>({
-    locationLabel: '', locationStreet: '', locationCity: '',
-    locationState: '', locationZip: '', unitType: '',
-  });
-
   // Submission
   const [submitStatus, setSubmitStatus] = useState<SubmitStatus>('idle');
   const [submitError,  setSubmitError]  = useState('');
@@ -401,9 +401,8 @@ export default function Confirmation() {
   function openEdit(card: CardKey) {
     if (editingCard || submitStatus !== 'idle') return;
     setEditingCard(card);
-    if (card === 'contact'     && contactData) setEditContact({ ...contactData });
-    if (card === 'address'     && addressData) setEditAddress({ ...addressData });
-    if (card === 'destination' && welcomeData) setEditWelcomeLocal({ ...welcomeData });
+    if (card === 'contact' && contactData) setEditContact({ ...contactData });
+    if (card === 'address' && addressData) setEditAddress({ ...addressData });
   }
 
   function cancelEdit() {
@@ -430,10 +429,6 @@ export default function Confirmation() {
     setEditingCard(null);
   }
 
-  function commitWelcome() {
-    setWelcome(editWelcome);
-    setEditingCard(null);
-  }
 
   // ------------------------------------------------------------------
   // Submit handler
@@ -454,12 +449,14 @@ export default function Confirmation() {
 
     // Build the payload using the helper function
     const payload = buildSalesOrderPayload({
-      contact:   contactData,
-      address:   addressData,
-      welcome:   welcomeData,
-      inventory: inventoryData,
-      email:     contactEmail,
+      contact:       contactData,
+      address:       addressData,
+      welcome:       welcomeData,
+      inventory:     inventoryData,
+      miscellaneous: formData.miscellaneous,
+      email:         contactEmail,
       roomSizes,
+      memberId:      profile?.trumuv_member_id,
     });
 
     // Pre-flight validation
@@ -480,11 +477,14 @@ export default function Confirmation() {
       setSubmitStatus('success');
     } catch (err) {
       const apiErr = err instanceof SalesOrderApiError ? err : null;
+      const jsErr  = err instanceof Error ? err : null;
       setDebugInfo({
         timestamp:    new Date().toLocaleString(),
         requestUrl:   apiErr?.requestUrl,
         httpStatus:   apiErr?.statusCode ?? 0,
-        errorMessage: err instanceof Error ? err.message : String(err),
+        errorMessage: jsErr?.message ?? String(err),
+        errorName:    jsErr?.name,
+        errorStack:   jsErr?.stack,
         apiStatus:    apiErr?.response?.status,
         apiMessage:   apiErr?.response?.data,
         apiLevel:     apiErr?.response?.Level,
@@ -598,14 +598,6 @@ export default function Confirmation() {
       {/* Header */}
       <header className="w-full px-8 md:px-10 py-5 md:py-6 flex items-center justify-between bg-white">
         <img src={logoImage} alt="Local Motion" className="h-10 md:h-12 w-auto" />
-        <button
-          type="button"
-          onClick={() => navigate('/admin')}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          aria-label="Settings"
-        >
-          <Settings className="h-6 w-6 text-gray-700" />
-        </button>
       </header>
 
       {/* Main Content */}
@@ -618,162 +610,59 @@ export default function Confirmation() {
             <h1 className="text-base text-gray-900 font-bold">All done — here's your summary</h1>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-            {/* ── Column 1 ───────────────────────────────────────────────── */}
-            <div className="flex flex-col gap-4">
-
-              {/* Payee Card */}
-              <DetailCard>
-                <div className="flex items-center gap-2 mb-2">
-                  <Building2 className="h-4 w-4 text-gray-600" />
-                  <h2 className="text-sm text-gray-900 font-bold">{payeeName}</h2>
-                </div>
-                <p className="text-xs text-gray-600 leading-relaxed">
-                  You're invited to take advantage of a great savings opportunity, and we hope it helps make your move a little less stressful. We want your move-in to be as convenient and smooth as possible, and we look forward to welcoming you as our newest resident!
-                </p>
-                <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-3">
-                  <span className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Contribution</span>
-                  <span className="text-2xl font-bold" style={{ background: 'linear-gradient(135deg, #f97316, #ec4899, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                    ${(welcomeData?.allowance ?? 0).toLocaleString()}
-                  </span>
-                </div>
-              </DetailCard>
-
-              {/* Contact Card */}
-              <div {...cardWrapperProps('contact')}>
-                <DetailCard>
-                  <CardHeader cardKey="contact" icon={<User className="h-4 w-4 text-gray-600" />} title="Contact information" />
-                  {editingCard === 'contact' ? (
-                    <>
-                      <div className="flex gap-3">
-                        <FloatingLabelInput label="First name" value={editContact.firstName} onChange={(e) => setEditContact((p) => ({ ...p, firstName: e.target.value }))} />
-                        <FloatingLabelInput label="Last name" value={editContact.lastName} onChange={(e) => setEditContact((p) => ({ ...p, lastName: e.target.value }))} />
-                      </div>
-                      <FloatingLabelInput label="Cell phone" format="phone" value={editContact.cellPhone} onChange={(e) => setEditContact((p) => ({ ...p, cellPhone: e.target.value }))} />
-                      <FloatingLabelInput label="E-mail" type="email" value={editContact.email} onChange={(e) => setEditContact((p) => ({ ...p, email: e.target.value }))} />
-                      <FloatingLabelInput label="Date of service" type="date" value={editContact.serviceDate} onChange={(e) => setEditContact((p) => ({ ...p, serviceDate: e.target.value }))} />
-                      <EditActions onSave={commitContact} onCancel={cancelEdit} />
-                    </>
-                  ) : contactData ? (
-                    <div className="flex flex-col">
-                      <SummaryRow icon={<User className="h-3.5 w-3.5" />} label="Name" value={`${contactData.firstName} ${contactData.lastName}`.trim()} />
-                      <SummaryRow icon={<Phone className="h-3.5 w-3.5" />} label="Cell phone" value={contactData.cellPhone} />
-                      <SummaryRow icon={<Mail className="h-3.5 w-3.5" />} label="E-mail" value={contactData.email ?? ''} />
-                      <SummaryRow icon={<Calendar className="h-3.5 w-3.5" />} label="Date of service" value={contactData.serviceDateDisplay} />
-                    </div>
-                  ) : (
-                    <p className="text-xs text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-lg p-3">No contact information saved. Please go back to step 2.</p>
-                  )}
-                </DetailCard>
-              </div>
-
+          {/* ── Contribution Card — full width ───────────────────────────── */}
+          <DetailCard className="mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Building2 className="h-4 w-4 text-gray-600" />
+              <h2 className="text-sm text-gray-900 font-bold">{payeeName}</h2>
+              {profile?.trumuv_payee_id != null && (
+                <span className="ml-auto text-xs text-gray-400">
+                  TruMuv ID: <span className="font-semibold text-gray-600">{profile.trumuv_payee_id}</span>
+                </span>
+              )}
             </div>
+            <p className="text-xs text-gray-600 leading-relaxed">
+              You're invited to take advantage of a great savings opportunity, and we hope it helps make your move a little less stressful. We want your move-in to be as convenient and smooth as possible, and we look forward to welcoming you as our newest resident!
+            </p>
+            <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-3">
+              <span className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Contribution</span>
+              <span className="text-2xl font-bold" style={{ background: 'linear-gradient(135deg, #f97316, #ec4899, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                ${(welcomeData?.allowance ?? 0).toLocaleString()}
+              </span>
+            </div>
+          </DetailCard>
 
-            {/* ── Column 2 ───────────────────────────────────────────────── */}
-            <div className="flex flex-col gap-4">
-
-              {/* Address Card */}
-              <div {...cardWrapperProps('address')}>
-                <DetailCard>
-                  <CardHeader cardKey="address" icon={<Home className="h-4 w-4 text-gray-600" />} title="Your confirmed address" />
-                  {editingCard === 'address' ? (
-                    <>
-                      <FloatingLabelInput label="Street address" value={editAddress.street} onChange={(e) => setEditAddress((p) => ({ ...p, street: e.target.value }))} />
-                      <div className="flex gap-3">
-                        <FloatingLabelInput label="City" value={editAddress.city} onChange={(e) => setEditAddress((p) => ({ ...p, city: e.target.value }))} />
-                        <FloatingLabelInput label="State" value={editAddress.state} onChange={(e) => setEditAddress((p) => ({ ...p, state: e.target.value }))} style={{ maxWidth: '80px' }} />
-                        <FloatingLabelInput label="Zip" value={editAddress.zipcode} onChange={(e) => setEditAddress((p) => ({ ...p, zipcode: e.target.value }))} style={{ maxWidth: '100px' }} />
-                      </div>
-                      <EditActions onSave={commitAddress} onCancel={cancelEdit} />
-                    </>
-                  ) : addressData ? (
-                    <div className="flex items-start gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <MapPin className="h-4 w-4 text-green-600 mt-0.5 shrink-0" />
-                      <div>
-                        <p className="text-sm text-gray-900 font-semibold">{addressData.formattedAddress}</p>
-                        {addressData.lat !== null && addressData.lng !== null && (
-                          <p className="text-xs text-gray-500 mt-0.5">{addressData.lat.toFixed(6)}, {addressData.lng.toFixed(6)}</p>
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-xs text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-lg p-3">No address saved. Please go back and confirm your address.</p>
-                  )}
-                </DetailCard>
-              </div>
-
-              {/* Destination Card */}
-              <div {...cardWrapperProps('destination')}>
-                <DetailCard>
-                  <CardHeader cardKey="destination" icon={<Building2 className="h-4 w-4 text-gray-600" />} title="Moving destination" />
-                  {editingCard === 'destination' ? (
-                    <>
-                      <FloatingLabelInput label="Location name" value={editWelcome.locationLabel} onChange={(e) => setEditWelcomeLocal((p) => ({ ...p, locationLabel: e.target.value }))} />
-                      <FloatingLabelInput label="Street address" value={editWelcome.locationStreet} onChange={(e) => setEditWelcomeLocal((p) => ({ ...p, locationStreet: e.target.value }))} />
-                      <div className="flex gap-3">
-                        <FloatingLabelInput label="City" value={editWelcome.locationCity} onChange={(e) => setEditWelcomeLocal((p) => ({ ...p, locationCity: e.target.value }))} />
-                        <FloatingLabelInput label="State" value={editWelcome.locationState} onChange={(e) => setEditWelcomeLocal((p) => ({ ...p, locationState: e.target.value }))} style={{ maxWidth: '80px' }} />
-                        <FloatingLabelInput label="Zip" value={editWelcome.locationZip} onChange={(e) => setEditWelcomeLocal((p) => ({ ...p, locationZip: e.target.value }))} style={{ maxWidth: '100px' }} />
-                      </div>
-                      <FloatingLabelInput label="Unit type" value={editWelcome.unitType} onChange={(e) => setEditWelcomeLocal((p) => ({ ...p, unitType: e.target.value }))} />
-                      <EditActions onSave={commitWelcome} onCancel={cancelEdit} />
-                    </>
-                  ) : welcomeData ? (
-                    <div className="flex flex-col">
-                      <SummaryRow icon={<MapPin className="h-3.5 w-3.5" />} label="Location" value={`${welcomeData.locationLabel} — ${welcomeData.locationStreet}, ${welcomeData.locationCity}, ${welcomeData.locationState} ${welcomeData.locationZip}`} />
-                      <SummaryRow icon={<BedDouble className="h-3.5 w-3.5" />} label="Unit type" value={welcomeData.unitType} />
-                    </div>
-                  ) : (
-                    <p className="text-xs text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-lg p-3">No destination saved. Please go back to step 1.</p>
-                  )}
-                </DetailCard>
-              </div>
-
-              {/* Inventory Card */}
-              <DetailCard>
-                <div className="flex items-center gap-2 mb-3">
-                  <Package className="h-4 w-4 text-gray-600" />
-                  <h2 className="text-sm text-gray-900 font-bold">Rooms selected</h2>
+          {/* ── Date & Time Card ─────────────────────────────────────────── */}
+          {contactData && (
+            <DetailCard className="mb-4">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                  <div>
+                    <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold">Date of Service</p>
+                    <p className="text-sm font-bold text-gray-900">{contactData.serviceDateDisplay || '—'}</p>
+                  </div>
                 </div>
-                {inventoryData && inventoryData.selectedRooms.length > 0 ? (
-                  <>
-                    <div className="flex flex-wrap gap-1.5">
-                      {inventoryData.selectedRooms.map((room) => (
-                        <span key={room} className="inline-flex items-center px-2 py-0.5 text-xs font-semibold bg-blue-50 border border-blue-200 text-blue-800 rounded-full">
-                          {roomLabel(room, inventoryData.bedroomCount)}
-                        </span>
-                      ))}
-                    </div>
-                    <div className="mt-3 pt-3 border-t border-gray-100">
-                      <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-2">Estimated Inventory</p>
-                      <div className="flex gap-6">
-                        <div className="flex flex-col">
-                          <span className="text-xs text-gray-400 uppercase tracking-wide">Furniture</span>
-                          <span className="text-lg text-gray-800 font-medium">{furnitureScore}</span>
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-xs text-gray-400 uppercase tracking-wide">Boxes</span>
-                          <span className="text-lg text-gray-800 font-medium">{boxCount}</span>
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-xs text-gray-400 uppercase tracking-wide">Misc</span>
-                          <span className="text-lg text-gray-800 font-medium">{miscScore}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <p className="text-xs text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-lg p-3">No rooms selected. Please go back and select your inventory.</p>
-                )}
-              </DetailCard>
+                <div className="w-px h-8 bg-gray-200" />
+                <div className="flex items-center gap-2">
+                  {contactData.preferredTime === 'morning'
+                    ? <Sun className="h-4 w-4 text-amber-400 flex-shrink-0" />
+                    : contactData.preferredTime === 'afternoon'
+                      ? <Cloud className="h-4 w-4 text-sky-400 flex-shrink-0" />
+                      : <Sun className="h-4 w-4 text-gray-300 flex-shrink-0" />
+                  }
+                  <div>
+                    <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold">Time of Service</p>
+                    <p className="text-sm font-bold text-gray-900 capitalize">{contactData.preferredTime ?? '—'}</p>
+                  </div>
+                </div>
+              </div>
+            </DetailCard>
+          )}
 
-            </div>{/* end column 2 */}
-          </div>{/* end grid */}
-
-          {/* ── Route Map ────────────────────────────────────────────────── */}
+          {/* ── Route Map — full width ────────────────────────────────────── */}
           {addressData && welcomeData && (
-            <DetailCard className="mt-4">
+            <DetailCard className="mb-4">
               <div className="flex items-center gap-2 mb-3">
                 <MapPin className="h-4 w-4 text-gray-600" />
                 <h2 className="text-sm text-gray-900 font-bold">Route</h2>
@@ -785,6 +674,129 @@ export default function Confirmation() {
               />
             </DetailCard>
           )}
+
+          {/* ── 3-column detail cards ─────────────────────────────────────── */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+
+            {/* Contact Card */}
+            <div className="h-full" {...cardWrapperProps('contact')}>
+              <DetailCard className="h-full mb-0 flex flex-col">
+                <CardHeader cardKey="contact" icon={<User className="h-4 w-4 text-gray-600" />} title="Contact information" />
+                {editingCard === 'contact' ? (
+                  <>
+                    <div className="flex gap-3">
+                      <FloatingLabelInput label="First name" value={editContact.firstName} onChange={(e) => setEditContact((p) => ({ ...p, firstName: e.target.value }))} />
+                      <FloatingLabelInput label="Last name" value={editContact.lastName} onChange={(e) => setEditContact((p) => ({ ...p, lastName: e.target.value }))} />
+                    </div>
+                    <FloatingLabelInput label="Cell phone" format="phone" value={editContact.cellPhone} onChange={(e) => setEditContact((p) => ({ ...p, cellPhone: e.target.value }))} />
+                    <FloatingLabelInput label="E-mail" type="email" value={editContact.email} onChange={(e) => setEditContact((p) => ({ ...p, email: e.target.value }))} />
+                    <FloatingLabelInput label="Date of service" type="date" value={editContact.serviceDate} onChange={(e) => setEditContact((p) => ({ ...p, serviceDate: e.target.value }))} />
+                    <EditActions onSave={commitContact} onCancel={cancelEdit} />
+                  </>
+                ) : contactData ? (
+                  <div className="flex flex-col flex-1 justify-between">
+                    <SummaryRow icon={<User className="h-3.5 w-3.5" />} label="Name" value={`${contactData.firstName} ${contactData.lastName}`.trim()} />
+                    <SummaryRow icon={<Phone className="h-3.5 w-3.5" />} label="Cell phone" value={contactData.cellPhone} />
+                    <SummaryRow icon={<Mail className="h-3.5 w-3.5" />} label="E-mail" value={contactData.email ?? ''} />
+                  </div>
+                ) : (
+                  <p className="text-xs text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-lg p-3">No contact information saved. Please go back to step 2.</p>
+                )}
+              </DetailCard>
+            </div>
+
+            {/* Combined Address + Destination Card */}
+            <DetailCard className="h-full mb-0">
+              {/* From */}
+              <div className="flex items-center gap-2 mb-2">
+                <Home className="h-4 w-4 text-gray-600" />
+                <h2 className="text-sm text-gray-900 font-bold">Moving from</h2>
+                {submitStatus === 'idle' && (
+                  <button type="button" onClick={() => openEdit('address')} className="ml-1 p-1 rounded hover:bg-gray-100 transition-colors" aria-label="Edit address">
+                    <Pencil className="h-3.5 w-3.5 text-gray-400 hover:text-gray-700" />
+                  </button>
+                )}
+              </div>
+              {editingCard === 'address' ? (
+                <>
+                  <FloatingLabelInput label="Street address" value={editAddress.street} onChange={(e) => setEditAddress((p) => ({ ...p, street: e.target.value }))} />
+                  <div className="flex gap-3">
+                    <FloatingLabelInput label="City" value={editAddress.city} onChange={(e) => setEditAddress((p) => ({ ...p, city: e.target.value }))} />
+                    <FloatingLabelInput label="State" value={editAddress.state} onChange={(e) => setEditAddress((p) => ({ ...p, state: e.target.value }))} style={{ maxWidth: '80px' }} />
+                    <FloatingLabelInput label="Zip" value={editAddress.zipcode} onChange={(e) => setEditAddress((p) => ({ ...p, zipcode: e.target.value }))} style={{ maxWidth: '100px' }} />
+                  </div>
+                  <EditActions onSave={commitAddress} onCancel={cancelEdit} />
+                </>
+              ) : addressData ? (
+                <div className="flex flex-col">
+                  <SummaryRow icon={<MapPin className="h-3.5 w-3.5" />} label="Location" value={addressData.formattedAddress} />
+                  <SummaryRow icon={<Home className="h-3.5 w-3.5" />} label="Home type" value={addressData.homeType ?? '—'} />
+                </div>
+              ) : (
+                <p className="text-xs text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-lg p-3">No address saved.</p>
+              )}
+
+              {/* Divider */}
+              <div className="my-3 border-t border-gray-100" />
+
+              {/* To */}
+              <div className="flex items-center gap-2 mb-2">
+                <Building2 className="h-4 w-4 text-gray-600" />
+                <h2 className="text-sm text-gray-900 font-bold">Moving to</h2>
+              </div>
+              {welcomeData ? (
+                <div className="flex flex-col">
+                  <SummaryRow icon={<MapPin className="h-3.5 w-3.5" />} label="Location" value={`${welcomeData.locationLabel} — ${welcomeData.locationStreet}, ${welcomeData.locationCity}, ${welcomeData.locationState} ${welcomeData.locationZip}`} />
+                  <SummaryRow icon={<BedDouble className="h-3.5 w-3.5" />} label="Unit type" value={welcomeData.unitType} />
+                </div>
+              ) : (
+                <p className="text-xs text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-lg p-3">No destination saved.</p>
+              )}
+            </DetailCard>
+
+            {/* Inventory Card */}
+            <DetailCard className="h-full mb-0">
+              <div className="flex items-center gap-2 mb-3">
+                <Package className="h-4 w-4 text-gray-600" />
+                <h2 className="text-sm text-gray-900 font-bold">Rooms selected</h2>
+              </div>
+              {inventoryData && inventoryData.selectedRooms.length > 0 ? (
+                <>
+                  <div className="flex flex-wrap gap-1.5">
+                    {inventoryData.selectedRooms.map((room) => (
+                      <span key={room} className="inline-flex items-center px-2 py-0.5 text-xs font-semibold bg-blue-50 border border-blue-200 text-blue-800 rounded-full">
+                        {roomLabel(room, inventoryData.bedroomCount)}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <p className="text-xs text-gray-500 font-semibold mb-2">Estimated inventory</p>
+                    <div className="flex gap-6">
+                      <div className="flex flex-col">
+                        <span className="text-xs text-gray-400">Furniture</span>
+                        <span className="text-lg text-gray-800 font-medium">{furnitureScore}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs text-gray-400">Boxes</span>
+                        <span className="text-lg text-gray-800 font-medium">{boxCount}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs text-gray-400">Misc</span>
+                        <span className="text-lg text-gray-800 font-medium">{miscScore}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs text-gray-400">Rating</span>
+                        <span className="text-lg text-gray-800 font-medium">{ratingTotal}</span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <p className="text-xs text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-lg p-3">No rooms selected. Please go back and select your inventory.</p>
+              )}
+            </DetailCard>
+
+          </div>{/* end 3-column grid */}
 
           {/* ── API error banner ─────────────────────────────────────────── */}
           {submitStatus === 'error' && debugInfo && (
@@ -800,6 +812,32 @@ export default function Confirmation() {
             </div>
           )}
 
+        </div>
+      </div>
+
+      {/* Info footer */}
+      <div className="w-full px-8 md:px-10 py-4 bg-gray-50 border-t border-gray-200">
+        <div className="max-w-3xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold text-gray-700">Local Motion, LLC</p>
+            <p className="text-xs text-gray-500">1250 Zane Avenue N, Golden Valley MN 55442</p>
+          </div>
+          {(member?.first_name || member?.last_name || member?.email || member?.phone) && (
+            <div className="text-right sm:text-right">
+              <p className="text-xs font-semibold text-gray-700">Technical Account Manager</p>
+              {(member?.first_name || member?.last_name) && (
+                <p className="text-xs text-gray-500">
+                  {[member.first_name, member.last_name].filter(Boolean).join(' ')}
+                </p>
+              )}
+              {member?.email && (
+                <p className="text-xs text-gray-500">{member.email}</p>
+              )}
+              {member?.phone && (
+                <p className="text-xs text-gray-500">{member.phone}</p>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

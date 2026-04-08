@@ -7,38 +7,42 @@
 // ---------------------------------------------------------------------------
 
 export interface SalesOrderRequest {
-  // Customer
+  // Account manager (required)
+  member_id: number;
+
+  // Customer (required)
   first_name: string;
   last_name: string;
   email: string;
   phone: string;
 
-  // Origin address (where they currently live)
+  // Origin address (required)
   start_address: string;
   start_city: string;
   start_state: string;
   start_zipcode: string;
 
-  // Destination address (where they're moving to)
+  // Destination address (required)
   end_address: string;
-  end_secondary_address: string; // Property/community name
   end_city: string;
   end_state: string;
   end_zipcode: string;
 
-  // Service details
+  // Service details (required)
   service_date: string;   // YYYY-MM-DD
-  box: string;            // Number of rooms selected (as string)
-  fur: string;            // Bedroom count (as string)
+  box: number;            // Number of boxes to move
+  fur: number;            // Furniture score (sum of room fur values)
   rating_id: number;      // Default: 1
 
   // Optional
   company_name?: string;
   start_secondary_address?: string;
+  start_type_id?: number;
+  end_secondary_address?: string;  // Property/community name
+  end_type_id: number;             // Default: 2 (apartment/community)
+  lineup?: number;                 // 1 = morning, 2 = afternoon
   service_id?: number;
   source_id?: number;
-  source?: string;
-  payee_id?: number;
 }
 
 // ---------------------------------------------------------------------------

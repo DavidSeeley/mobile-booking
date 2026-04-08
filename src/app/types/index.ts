@@ -12,5 +12,7 @@ export type {
   GoogleAdvancedMarkerConstructor,
 } from './google-maps';
 
+export type { MemberFields, MemberRow } from './member';
+
 // Window extensions in window.d.ts are global declarations
 // They are automatically picked up by TypeScript without needing imports

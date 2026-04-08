@@ -6,7 +6,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Settings, MapPin, Home, Calendar, X } from 'lucide-react';
+import { MapPin, Home, Calendar, X } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import logoImage from '../../../assets/BookingLogo.png';
 import { AllowanceModal } from '../../components/allowance-modal';
@@ -30,8 +30,13 @@ const formatDate = (date: Date) =>
 export default function Welcome() {
   const navigate = useNavigate();
   useAppStarted();
-  const { setWelcome } = useFormData();
+  const { formData, setWelcome } = useFormData();
   const { buildings, loading: buildingsLoading } = useProfile();
+
+  // Filter to only the PIN-selected building
+  const filteredBuildings = formData.buildingId
+    ? buildings.filter(b => b.id === formData.buildingId)
+    : buildings;
   
   const [selectedId, setSelectedId] = useState<string>('');
   const [unit, setUnit] = useState<string>('');
@@ -58,7 +63,7 @@ export default function Welcome() {
     return () => { document.body.style.overflow = ''; };
   }, [calendarOpen]);
 
-  const selectedAddress = buildings.find((b) => b.id === selectedId) ?? null;
+  const selectedAddress = filteredBuildings.find((b) => b.id === selectedId) ?? null;
   const aptSizes = selectedAddress?.apartment_sizes ?? [];
 
   const isValid = !!selectedId && unit.trim() !== '';
@@ -116,14 +121,6 @@ export default function Welcome() {
       {/* Header */}
       <header className="w-full px-6 md:px-8 py-3 md:py-4 flex items-center justify-between bg-white flex-shrink-0">
         <img src={logoImage} alt="Local Motion" className="h-10 md:h-12 w-auto" />
-        <button
-          type="button"
-          onClick={() => navigate('/admin')}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          aria-label="Settings"
-        >
-          <Settings className="h-6 w-6 text-gray-700" />
-        </button>
       </header>
 
       {/* Main Content */}
@@ -139,10 +136,10 @@ export default function Welcome() {
           <div className="flex flex-col gap-3">
             {buildingsLoading ? (
               <p className="text-gray-400 text-sm">Loading locations…</p>
-            ) : buildings.length === 0 ? (
+            ) : filteredBuildings.length === 0 ? (
               <p className="text-gray-400 text-sm">No locations configured. Add buildings in the Profile page.</p>
             ) : (
-              buildings.map((building) => {
+              filteredBuildings.map((building) => {
                 const isSelected = selectedId === building.id;
                 return (
                   <label

@@ -999,7 +999,7 @@ html {
 
   .load-size-card[data-selected="true"] {
     border-color: var(--blue-600);
-    background: var(--blue-50);
+    background: var(--card);
     box-shadow: var(--shadow-md);
   }
 

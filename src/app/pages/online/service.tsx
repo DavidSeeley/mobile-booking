@@ -9,7 +9,7 @@
 
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Settings, Package, Archive, Hand, Users, Box, Truck, Container } from 'lucide-react';
+import { Package, Archive, Hand, Users, Box, Truck, Container } from 'lucide-react';
 import logoImage from '../../../assets/BookingLogo.png';
 import { DetailCard } from '@/components/detail-card';
 import { useFormData } from '@/context/FormContext';
@@ -71,14 +71,6 @@ export default function Service() {
       {/* Header */}
       <header className="w-full px-6 md:px-8 py-4 md:py-5 flex items-center justify-between bg-white">
         <img src={logoImage} alt="Local Motion" className="h-10 md:h-12 w-auto" />
-        <button
-          type="button"
-          onClick={() => navigate('/admin')}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          aria-label="Settings"
-        >
-          <Settings className="h-6 w-6 text-violet-500" />
-        </button>
       </header>
 
       {/* Main Content */}

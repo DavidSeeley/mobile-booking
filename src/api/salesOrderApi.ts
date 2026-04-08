@@ -9,7 +9,7 @@ import type {
   SalesOrderSuccessResponse,
 } from './types';
 import { SalesOrderApiError, isSuccessResponse } from './types';
-import type { SavedContact, SavedAddress, SavedWelcome, SavedInventory } from '@/mocks/MobileCust';
+import type { SavedContact, SavedAddress, SavedWelcome, SavedInventory, SavedMiscellaneous } from '@/mocks/MobileCust';
 import type { RoomSizeRow } from '@/lib/supabase';
 
 // ---------------------------------------------------------------------------
@@ -27,14 +27,16 @@ import type { RoomSizeRow } from '@/lib/supabase';
  * - email    : entered on Confirmation page
  */
 export function buildSalesOrderPayload(params: {
-  contact:   SavedContact;
-  address:   SavedAddress;
-  welcome:   SavedWelcome;
-  inventory: SavedInventory;
-  email:     string;
-  roomSizes: RoomSizeRow[];
+  contact:       SavedContact;
+  address:       SavedAddress;
+  welcome:       SavedWelcome;
+  inventory:     SavedInventory;
+  miscellaneous: SavedMiscellaneous | null;
+  email:         string;
+  roomSizes:     RoomSizeRow[];
+  memberId?:     number;
 }): SalesOrderRequest {
-  const { contact, address, welcome, inventory, email, roomSizes } = params;
+  const { contact, address, welcome, inventory, miscellaneous, email, roomSizes, memberId } = params;
 
   // Furniture total: sum the fur value for each selected room from Supabase roomSizes.
   // For 'bedroom', multiply by bedroomCount (user may be moving multiple bedrooms).
@@ -45,18 +47,26 @@ export function buildSalesOrderPayload(params: {
     return sum + roomRow.fur * multiplier;
   }, 0);
 
-  return {
-    // Customer
-    first_name: contact.firstName,
-    last_name:  contact.lastName,
-    email:      email.trim(),
-    phone:      contact.cellPhone,
+  // rating_id = stop_type.ratio + (disassemble_beds ? 2 : 0)
+  const stopTypeRatio    = address.homeTypeRatio ?? 1;
+  const disassembleBonus = inventory.disassembleBeds ? 2 : 0;
 
-    // Origin — individual fields stored directly on SavedAddress
-    start_address:  address.street,
-    start_city:     address.city,
-    start_state:    address.state,
-    start_zipcode:  address.zipcode,
+  return {
+    // Account manager
+    member_id: memberId ?? 0,
+
+    // Customer
+    first_name:   contact.firstName,
+    last_name:    contact.lastName,
+    email:        email.trim(),
+    phone:        contact.cellPhone,
+
+    // Origin
+    start_address:   address.street,
+    start_city:      address.city,
+    start_state:     address.state,
+    start_zipcode:   address.zipcode,
+    start_type_id:   address.homeTypeId,
 
     // Destination
     end_address:           welcome.locationStreet,
@@ -64,15 +74,14 @@ export function buildSalesOrderPayload(params: {
     end_city:              welcome.locationCity,
     end_state:             welcome.locationState,
     end_zipcode:           welcome.locationZip,
+    end_type_id:           2,
 
     // Service
     service_date: contact.serviceDate,
-    box:          String(inventory.selectedRooms.length),
-    fur:          String(furTotal),
-    rating_id:    1,
-
-    // Tracking
-    source: 'online',
+    lineup:       contact.preferredTime === 'morning' ? 1 : contact.preferredTime === 'afternoon' ? 2 : undefined,
+    box:          miscellaneous?.boxCount ?? 0,
+    fur:          furTotal,
+    rating_id:    stopTypeRatio + disassembleBonus,
   };
 }
 
@@ -104,7 +113,7 @@ export async function createSalesOrder(
   const url = API_CONFIG.baseUrl;
 
   // Encode once so we can attach the exact bytes sent to any thrown error
-  const encodedBody = toFormUrlEncoded(orderData as Record<string, string | number>);
+  const encodedBody = toFormUrlEncoded(orderData as unknown as Record<string, string | number>);
 
   let response: Response;
 
@@ -210,7 +219,7 @@ export async function createSalesOrder(
 export function validateSalesOrderData(
   orderData: Partial<SalesOrderRequest>
 ): string[] {
-  const required: (keyof SalesOrderRequest)[] = [
+  const stringFields: (keyof SalesOrderRequest)[] = [
     'first_name',
     'last_name',
     'email',
@@ -220,17 +229,19 @@ export function validateSalesOrderData(
     'start_state',
     'start_zipcode',
     'end_address',
-    'end_secondary_address',
     'end_city',
     'end_state',
     'end_zipcode',
     'service_date',
-    'box',
-    'fur',
-    'rating_id',
   ];
 
-  return required.filter((field) => !orderData[field]);
+  const missing = stringFields.filter((field) => !orderData[field]);
+
+  // Numeric fields — must be defined and non-zero
+  if (!orderData.member_id) missing.push('member_id');
+  if (orderData.rating_id === undefined || orderData.rating_id === null) missing.push('rating_id');
+
+  return missing;
 }
 
 // ---------------------------------------------------------------------------

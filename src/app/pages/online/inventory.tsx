@@ -8,7 +8,7 @@
  */
 
 import { useState } from 'react';
-import { Settings, Package, Minus, Plus, Drill } from 'lucide-react';
+import { LayoutGrid, Minus, Plus, Drill } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import logoImage from '../../../assets/BookingLogo.png';
 import studioIcon from '../../../assets/Studio.png';
@@ -21,12 +21,12 @@ import { useAppStarted } from '@/hooks/useAppStarted';
 import { useFormData } from '@/context/FormContext';
 
 const LOAD_SIZES = [
-  { id: 'studio',      label: 'Studio',      icon: studioIcon,     scale: 1.56 },
-  { id: 'bedroom',     label: 'Bedroom',     icon: bedroomIcon,    scale: 1.56 },
-  { id: 'living-room', label: 'Living Room', icon: livingRoomIcon, scale: 1.56 },
-  { id: 'dining',      label: 'Dining',      icon: diningIcon,     scale: 1.56 },
-  { id: 'den',         label: 'Den',         icon: denIcon,        scale: 1.56 },
-  { id: 'patio',       label: 'Patio',       icon: patioIcon,      scale: 1.56 },
+  { id: 'studio',      label: 'Studio',      icon: studioIcon,     scale: 1.25 },
+  { id: 'bedroom',     label: 'Bedroom',     icon: bedroomIcon,    scale: 1.25 },
+  { id: 'living-room', label: 'Living Room', icon: livingRoomIcon, scale: 1.25 },
+  { id: 'dining',      label: 'Dining',      icon: diningIcon,     scale: 1.25 },
+  { id: 'den',         label: 'Den',         icon: denIcon,        scale: 1.25 },
+  { id: 'patio',       label: 'Patio',       icon: patioIcon,      scale: 1.25 },
 ];
 
 export default function Inventory() {
@@ -93,28 +93,48 @@ export default function Inventory() {
       {/* Header */}
       <header className="w-full px-6 md:px-8 py-2 flex items-center justify-between bg-white flex-shrink-0">
         <img src={logoImage} alt="Local Motion" className="h-7 w-auto" />
-        <button
-          type="button"
-          onClick={() => navigate('/admin')}
-          className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
-          aria-label="Settings"
-        >
-          <Settings className="h-4 w-4 text-gray-700" />
-        </button>
       </header>
 
       {/* Main Content */}
       <div className="flex-1 px-6 md:px-8 py-3 overflow-y-auto">
         <div className="max-w-3xl">
 
+          {/* Bed Disassembly Question */}
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Drill className="h-5 w-5 text-orange-500 flex-shrink-0" />
+              <h2 className="text-gray-900 font-bold section-heading">
+                Would you like us to disassemble beds?
+              </h2>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setDisassembleBeds(true)}
+                className={`inventory-choice-btn ${disassembleBeds === true ? 'inventory-choice-btn-yes' : 'inventory-choice-btn-inactive'}`}
+              >
+                Yes
+              </button>
+              <button
+                type="button"
+                onClick={() => setDisassembleBeds(false)}
+                className={`inventory-choice-btn ${disassembleBeds === false ? 'inventory-choice-btn-no' : 'inventory-choice-btn-inactive'}`}
+              >
+                No
+              </button>
+            </div>
+          </div>
+
+          <hr className="my-4 border-gray-200" />
+
           {/* Page Title */}
-          <div className="flex items-center gap-2 mb-3">
-            <Package className="h-4 w-4 text-orange-500" />
+          <div className="flex items-center gap-2 mb-5">
+            <LayoutGrid className="h-5 w-5 text-violet-500" />
             <h1 className="text-gray-900 font-bold section-heading">What rooms are we moving?</h1>
           </div>
 
           {/* Load Size Options */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
             {LOAD_SIZES.map((option) => (
               <button
                 key={option.id}
@@ -143,31 +163,6 @@ export default function Inventory() {
             ))}
           </div>
 
-          {/* Bed Disassembly Question */}
-          <div className="mt-6">
-            <div className="flex items-center gap-2 mb-2">
-              <Drill className="h-4 w-4 text-orange-500 flex-shrink-0" />
-              <h2 className="text-gray-900 font-bold section-heading">
-                Would you like us to disassemble beds?
-              </h2>
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setDisassembleBeds(true)}
-                className={`inventory-choice-btn ${disassembleBeds === true ? 'inventory-choice-btn-yes' : 'inventory-choice-btn-inactive'}`}
-              >
-                Yes
-              </button>
-              <button
-                type="button"
-                onClick={() => setDisassembleBeds(false)}
-                className={`inventory-choice-btn ${disassembleBeds === false ? 'inventory-choice-btn-no' : 'inventory-choice-btn-inactive'}`}
-              >
-                No
-              </button>
-            </div>
-          </div>
 
         </div>
       </div>

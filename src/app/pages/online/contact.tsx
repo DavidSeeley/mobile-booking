@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { Settings, User, Sun, Cloud, Clock } from 'lucide-react';
+import { User, Sun, Cloud, Clock } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
 import logoImage from '../../../assets/BookingLogo.png';
 import { DetailCard } from '@/components/detail-card';
@@ -32,14 +32,6 @@ export default function Contact() {
       {/* Header */}
       <header className="w-full px-6 md:px-8 py-3 md:py-4 flex items-center justify-between bg-white flex-shrink-0">
         <img src={logoImage} alt="Local Motion" className="h-10 md:h-12 w-auto" />
-        <button
-          type="button"
-          onClick={() => navigate('/admin')}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          aria-label="Settings"
-        >
-          <Settings className="h-6 w-6 text-violet-500" />
-        </button>
       </header>
 
       {/* Main Content */}
@@ -56,7 +48,7 @@ export default function Contact() {
           <DetailCard>
             <FloatingLabelInput label="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} inputClassName="contact-info-field" />
             <FloatingLabelInput label="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} inputClassName="contact-info-field" />
-            <FloatingLabelInput label="Cell Phone" type="tel" value={cellPhone} onChange={(e) => setCellPhone(e.target.value)} inputClassName="contact-info-field" />
+            <FloatingLabelInput label="Cell Phone" type="tel" format="phone" value={cellPhone} onChange={(e) => setCellPhone(e.target.value)} inputClassName="contact-info-field" />
             <FloatingLabelInput label="Email Address" type="email" value={email} onChange={(e) => setEmail(e.target.value)} inputClassName="contact-info-field" />
           </DetailCard>
 
@@ -117,7 +109,7 @@ export default function Contact() {
             onClick={() => {
               const service_date = state?.service_date ?? '';
               const serviceDateDisplay = state?.serviceDateDisplay ?? '';
-              setContact({ firstName, lastName, cellPhone, email, serviceDate: service_date, serviceDateDisplay });
+              setContact({ firstName, lastName, cellPhone, email, serviceDate: service_date, serviceDateDisplay, preferredTime });
               navigate('/address', {
                 state: {
                   ...state,

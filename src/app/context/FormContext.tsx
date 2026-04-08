@@ -36,6 +36,7 @@ export interface ContactData {
   email: string;
   serviceDate: string; // YYYY-MM-DD
   serviceDateDisplay: string; // "March 22, 2026"
+  preferredTime?: 'morning' | 'afternoon';
 }
 
 export interface AddressData {
@@ -46,6 +47,9 @@ export interface AddressData {
   zipcode: string;
   lat: number | null;
   lng: number | null;
+  homeType?: string;
+  homeTypeId?: number;
+  homeTypeRatio?: number;
 }
 
 export interface InventoryData {
@@ -77,6 +81,7 @@ export interface FormData {
   miscellaneous: MiscellaneousData | null;
   service: ServiceData | null;
   profile: ProfileData | null;
+  buildingId: string | null;  // Set from PIN lookup on splash
 }
 
 // ============================================================================
@@ -92,6 +97,7 @@ interface FormContextValue {
   setMiscellaneous: (data: MiscellaneousData) => void;
   setService: (data: ServiceData) => void;
   setProfile: (data: ProfileData) => void;
+  setBuildingId: (id: string) => void;
   resetForm: () => void;
 }
 
@@ -124,6 +130,7 @@ function getInitialFormData(): FormData {
     miscellaneous: null,
     service: null,
     profile: null,
+    buildingId: null,
   };
 }
 
@@ -165,6 +172,10 @@ export function FormProvider({ children }: { children: ReactNode }) {
     setFormData(prev => ({ ...prev, profile: data }));
   }, []);
 
+  const setBuildingId = useCallback((id: string) => {
+    setFormData(prev => ({ ...prev, buildingId: id }));
+  }, []);
+
   const resetForm = useCallback(() => {
     const emptyData: FormData = {
       welcome: null,
@@ -174,6 +185,7 @@ export function FormProvider({ children }: { children: ReactNode }) {
       miscellaneous: null,
       service: null,
       profile: null,
+      buildingId: null,
     };
     setFormData(emptyData);
     if (typeof window !== 'undefined') {
@@ -192,8 +204,9 @@ export function FormProvider({ children }: { children: ReactNode }) {
     setMiscellaneous,
     setService,
     setProfile,
+    setBuildingId,
     resetForm,
-  }), [formData, setWelcome, setContact, setAddress, setInventory, setMiscellaneous, setService, setProfile, resetForm]);
+  }), [formData, setWelcome, setContact, setAddress, setInventory, setMiscellaneous, setService, setProfile, setBuildingId, resetForm]);
 
   return (
     <FormContext.Provider value={value}>

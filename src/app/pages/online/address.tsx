@@ -19,35 +19,15 @@
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Settings, LocateFixed, MapPin } from 'lucide-react';
+import { LocateFixed, MapPin, Home } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import logoImage from '../../../assets/BookingLogo.png';
 import { DetailCard } from '@/components/detail-card';
 import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_MAP_ID } from '@/utils/env';
 import type { GoogleMap, GoogleAdvancedMarker } from '@/types';
 import { useFormData } from '@/context/FormContext';
-
-// ---------------------------------------------------------------------------
-// Nominatim result shape
-// ---------------------------------------------------------------------------
-interface NominatimAddress {
-  house_number?: string;
-  road?: string;
-  city?: string;
-  town?: string;
-  village?: string;
-  municipality?: string;
-  state?: string;
-  postcode?: string;
-  country_code?: string;
-}
-
-interface NominatimResult {
-  display_name: string;
-  lat: string;
-  lon: string;
-  address?: NominatimAddress;
-}
+import type { NominatimAddress, NominatimResult } from '@/types/address';
+import { useStopTypes } from '@/hooks/useStopTypes';
 
 // ---------------------------------------------------------------------------
 // Format a Nominatim result as: "123 Main St, City, ST 12345"
@@ -122,6 +102,7 @@ function loadGoogleMaps(): Promise<void> {
 export default function Address() {
   const navigate = useNavigate();
   const { formData, setAddress } = useFormData();
+  const { stopTypes } = useStopTypes();
   const mapRef         = useRef<HTMLDivElement>(null);
   const markerRef      = useRef<GoogleAdvancedMarker | null>(null);
   const mapInstanceRef = useRef<GoogleMap | null>(null);
@@ -139,6 +120,10 @@ export default function Address() {
   const [addressParts, setAddressParts] = useState<{
     street: string; city: string; state: string; zipcode: string;
   }>({ street: '', city: '', state: '', zipcode: '' });
+  const [homeType, setHomeType]           = useState('');
+  const [homeTypeId, setHomeTypeId]       = useState<number | undefined>(undefined);
+  const [homeTypeRatio, setHomeTypeRatio] = useState<number>(1);
+  const [showHomeTypeError, setShowHomeTypeError] = useState(false);
 
   // ── Navigation guard ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -161,6 +146,9 @@ export default function Address() {
         state: formData.address.state,
         zipcode: formData.address.zipcode,
       });
+      if (formData.address.homeType) setHomeType(formData.address.homeType);
+      if (formData.address.homeTypeId !== undefined) setHomeTypeId(formData.address.homeTypeId);
+      if (formData.address.homeTypeRatio !== undefined) setHomeTypeRatio(formData.address.homeTypeRatio);
     }
   }, []);
 
@@ -279,6 +267,10 @@ export default function Address() {
 
   // ── Confirm → save to FormContext → navigate ──────────────────────────────
   const handleConfirm = () => {
+    if (!homeType) {
+      setShowHomeTypeError(true);
+      return;
+    }
     setAddress({
       formattedAddress: address,
       street:   addressParts.street,
@@ -287,6 +279,9 @@ export default function Address() {
       zipcode:  addressParts.zipcode,
       lat: position?.lat ?? null,
       lng: position?.lng ?? null,
+      homeType:      homeType || undefined,
+      homeTypeId:    homeType ? homeTypeId : undefined,
+      homeTypeRatio: homeType ? homeTypeRatio : undefined,
     });
     navigate('/inventory');
   };
@@ -298,14 +293,6 @@ export default function Address() {
       {/* Header */}
       <header className="w-full px-6 md:px-8 py-4 md:py-5 flex items-center justify-between bg-white flex-shrink-0">
         <img src={logoImage} alt="Local Motion" className="h-10 md:h-12 w-auto" />
-        <button
-          type="button"
-          onClick={() => navigate('/admin')}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          aria-label="Settings"
-        >
-          <Settings className="h-6 w-6 text-gray-700" />
-        </button>
       </header>
 
       {/* Main Content */}
@@ -356,13 +343,6 @@ export default function Address() {
               )}
             </div>
 
-            {/* Confirmed address pill — appears after selection */}
-            {address && (
-              <div className="flex items-start gap-3 mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <MapPin className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
-                <p className="text-slate-700 text-14px">{address}</p>
-              </div>
-            )}
 
             {/* Google Map */}
             <div
@@ -371,6 +351,40 @@ export default function Address() {
               style={{ height: '240px' }}
             />
           </DetailCard>
+
+          {/* Home Type */}
+          <div className="mt-5 mb-4">
+            <h2 className="text-gray-900 mb-3 font-bold flex items-center gap-2 section-heading">
+              <Home className="h-5 w-5 text-orange-500 flex-shrink-0" />
+              What type of home is this?
+            </h2>
+            <select
+              value={homeType}
+              onChange={(e) => {
+                const val = e.target.value;
+                setHomeType(val);
+                setShowHomeTypeError(false);
+                const matched = stopTypes.find(s => s.name === val);
+                setHomeTypeId(matched?.id);
+                setHomeTypeRatio(matched?.ratio ?? 1);
+              }}
+              className={[
+                'w-full max-w-xs px-4 py-3 border-2 rounded-xl bg-white text-gray-900 focus:outline-none focus:border-blue-500',
+                showHomeTypeError ? 'border-red-500' : 'border-gray-300',
+              ].join(' ')}
+            >
+              <option value="">Select home type…</option>
+              <option value="Single Family">Single Family</option>
+              <option value="Apartment">Apartment</option>
+              <option value="Storage Unit">Storage Unit</option>
+              <option value="Rambler">Rambler</option>
+              <option value="Duplex">Duplex</option>
+              <option value="Condo">Condo</option>
+            </select>
+            {showHomeTypeError && (
+              <p className="text-red-500 text-sm mt-2">Please select a home type.</p>
+            )}
+          </div>
 
         </div>
       </div>

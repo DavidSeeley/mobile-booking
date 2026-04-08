@@ -102,10 +102,11 @@ export const DEFAULT_ADDED_ITEMS: AddedItemRow[] = [
 ];
 
 export const DEFAULT_CONVERTER: ConverterRow[] = [
-  { id: 'furniture', name: 'Furniture', ratio: 25, formula: 'SUM(selectedRooms[id].fur × bedroomCount if bedroom)' },
-  { id: 'boxes',     name: 'Boxes',     ratio: 75, formula: '(TruckSize Box) * (LoadSize Ratio) * (Added Items Ratio)' },
-  { id: 'trucks',    name: 'Trucks',    ratio: 0,  formula: '' },
-  { id: 'movers',    name: 'Movers',    ratio: 0,  formula: '' },
+  { id: 'furniture',  name: 'Furniture',  ratio: 25, formula: 'SUM(selectedRooms[id].fur × bedroomCount if bedroom)' },
+  { id: 'boxes',      name: 'Boxes',      ratio: 75, formula: '(TruckSize Box) * (LoadSize Ratio) * (Added Items Ratio)' },
+  { id: 'trucks',     name: 'Trucks',     ratio: 0,  formula: '' },
+  { id: 'movers',     name: 'Movers',     ratio: 0,  formula: '' },
+  { id: 'rating_id',  name: 'Rating ID',  ratio: 0,  formula: 'stop_type.ratio + (disassemble_beds ? 2 : 0)' },
 ];
 
 // ---------------------------------------------------------------------------

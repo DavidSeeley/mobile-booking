@@ -31,7 +31,11 @@ export const GOOGLE_MAPS_MAP_ID: string =
 /** Base URL for ApiSalesOrder v1.00 (no trailing slash). */
 export const API_BASE_URL: string =
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
-  "http://localhost:5173/localmotion/api/wp/api.php?controller=sales_order";
+  "https://test.netsirv.com/localmotion/api/wp/api.php?controller=sales_order";
+
+/** Bearer token for Sales Order API. */
+export const API_KEY: string =
+  (import.meta.env.VITE_API_KEY as string | undefined) ?? '';
 
 // ---------------------------------------------------------------------------
 // Supabase
