@@ -89,7 +89,7 @@ export default function Admin() {
       <header className="w-full px-6 md:px-8 py-4 border-b border-gray-200 bg-white flex items-center gap-4">
         <button
           type="button"
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/admin')}
           className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 text-gray-700"
           aria-label="Back to home"
         >

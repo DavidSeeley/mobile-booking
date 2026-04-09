@@ -17,6 +17,7 @@ import Address from "./pages/online/address";
 import Inventory from "./pages/online/inventory";
 import Miscellaneous from "./pages/online/miscellaneous";
 import Confirmation from "./pages/online/confirmation";
+import AdminSplash from "./pages/admin/AdminSplash";
 import Admin from "./pages/admin/admin";
 import Payees from "./pages/admin/payee";
 import Profile from "./pages/profile/profile";
@@ -35,8 +36,9 @@ export const router = createBrowserRouter([
   { path: "/inventory",    Component: Inventory },
   { path: "/miscellaneous", Component: Miscellaneous },
   { path: "/confirmation", Component: Confirmation },
-  { path: "/admin",        Component: Admin },
-  { path: "/admin/payees", Component: Payees },
+  { path: "/admin",           Component: AdminSplash },
+  { path: "/admin/dashboard", Component: Admin },
+  { path: "/admin/payees",    Component: Payees },
   { path: "/profile",      Component: Profile },
   { path: "*",             Component: RedirectToRoot },     // catch-all
 ]);
