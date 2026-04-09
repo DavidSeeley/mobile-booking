@@ -22,7 +22,7 @@ import { useNavigate } from 'react-router';
 import { 
   CheckCircle, MapPin, Calendar, Package, Home, User, Loader2, AlertCircle,
   Pencil, Phone, Mail, Check, X, ChevronUp, ChevronDown, Sun, Cloud,
-  ClipboardCopy, ClipboardCheck, PartyPopper, Building2, BedDouble, MessageSquare
+  ClipboardCopy, ClipboardCheck, PartyPopper, Building2, BedDouble, MessageSquare, ContactRound, HelpCircle
 } from 'lucide-react';
 import logoImage from '../../../assets/BookingLogo.png';
 import { DetailCard } from '@/components/detail-card';
@@ -300,7 +300,6 @@ function SummaryRow({
   return (
     <div className="flex items-center gap-2 min-h-[36px] border-b border-gray-100 last:border-0">
       <span className="shrink-0 text-gray-400">{icon}</span>
-      <span className="text-xs text-gray-500 font-bold shrink-0">{label}</span>
       <span className="text-xs text-gray-800 ml-auto text-right">{value || '—'}</span>
     </div>
   );
@@ -567,7 +566,7 @@ export default function Confirmation() {
             </div>
             <h1 className="text-xl text-gray-900 font-bold mb-3">Order submitted!</h1>
             <p className="text-sm text-gray-600 mb-6">
-              Thanks, {contactData?.firstName}! We've received your request and will be in touch soon.
+              Thanks, {contactData?.firstName}! Please check your email to finish booking this move.
             </p>
 
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 text-left flex flex-col gap-3">
@@ -591,11 +590,35 @@ export default function Confirmation() {
 
             <button
               type="button"
-              onClick={() => { resetForm(); navigate('/'); }}
+              onClick={() => { resetForm(); navigate('/online'); }}
               className="mt-6 w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl transition-colors"
             >
-              Start New Booking
+              Check Email!
             </button>
+
+            {/* Footer info */}
+            <div className="mt-6 pt-4 border-t border-gray-200 flex flex-col gap-3 text-left">
+              <div className="flex items-center gap-2">
+                <HelpCircle className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                <p className="text-sm text-gray-900 font-bold">Have questions?</p>
+              </div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold text-gray-700">Local Motion, LLC</p>
+                <p className="text-xs text-gray-500">1250 Zane Avenue N, Golden Valley MN 55442</p>
+              </div>
+              {(member?.first_name || member?.last_name || member?.email || member?.phone) && (
+                <div className="sm:text-right">
+                  <p className="text-xs font-semibold text-gray-700">Technical Account Manager</p>
+                  {(member?.first_name || member?.last_name) && (
+                    <p className="text-xs text-gray-500">{[member.first_name, member.last_name].filter(Boolean).join(' ')}</p>
+                  )}
+                  {member?.email && <p className="text-xs text-gray-500">{member.email}</p>}
+                  {member?.phone && <p className="text-xs text-gray-500">{member.phone}</p>}
+                </div>
+              )}
+            </div>
+            </div>
           </div>
         </div>
       </div>
@@ -694,7 +717,7 @@ export default function Confirmation() {
             {/* Contact Card */}
             <div className="h-full" {...cardWrapperProps('contact')}>
               <DetailCard className="h-full mb-0 flex flex-col">
-                <CardHeader cardKey="contact" icon={<User className="h-4 w-4 text-teal-500" />} title="Contact information" />
+                <CardHeader cardKey="contact" icon={<ContactRound className="h-4 w-4 text-teal-500" />} title="Contact information" />
                 {editingCard === 'contact' ? (
                   <>
                     <div className="flex gap-3">
@@ -717,24 +740,20 @@ export default function Confirmation() {
                     <div className="mt-2 pt-2 border-t border-gray-100">
                       <div className="flex items-center gap-1.5 mb-2">
                         <Package className="h-4 w-4 text-violet-500 flex-shrink-0" />
-                        <p className="text-xs text-gray-500 font-bold">Estimated inventory</p>
+                        <p className="text-sm text-gray-900 font-bold">Estimated inventory</p>
                       </div>
                       <div className="flex gap-5">
                         <div className="flex flex-col">
-                          <span className="text-xs text-gray-500 font-bold">Furniture</span>
-                          <span className="text-xs text-gray-800">{furnitureScore}</span>
+                          <span className="text-xs text-gray-900 text-center">Furniture</span>
+                          <span className="text-xs text-gray-800 text-center">{furnitureScore}</span>
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-xs text-gray-500 font-bold">Boxes</span>
-                          <span className="text-xs text-gray-800">{boxCount}</span>
+                          <span className="text-xs text-gray-900 text-center">Boxes</span>
+                          <span className="text-xs text-gray-800 text-center">{boxCount}</span>
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-xs text-gray-500 font-bold">Misc</span>
-                          <span className="text-xs text-gray-800">{miscScore}</span>
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-xs text-gray-500 font-bold">Rating</span>
-                          <span className="text-xs text-gray-800">{ratingTotal}</span>
+                          <span className="text-xs text-gray-900 text-center">Unboxed</span>
+                          <span className="text-xs text-gray-800 text-center">{miscScore}</span>
                         </div>
                       </div>
                     </div>
@@ -778,7 +797,7 @@ export default function Confirmation() {
                       <div className="border-t border-gray-100 my-2" />
                       <div className="flex items-center gap-1.5 mb-1">
                         <MessageSquare className="h-4 w-4 text-purple-500 flex-shrink-0" />
-                        <p className="text-xs font-bold text-gray-700">What matters most to you on moving day?</p>
+                        <p className="text-sm text-gray-900 font-bold">What matters most?</p>
                       </div>
                       <p className="text-xs text-gray-600 leading-relaxed">{welcomeData.notes}</p>
                     </>

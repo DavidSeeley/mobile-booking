@@ -36,7 +36,10 @@ function ServiceGrid() {
 
 export default function Splash() {
   const navigate  = useNavigate();
-  const { setBuildingId, setPayeeId } = useFormData();
+  const { setBuildingId, setPayeeId, resetForm } = useFormData();
+
+  // Clear any previous session data when the splash page loads
+  useEffect(() => { resetForm(); }, []);
 
   const [pinOpen,   setPinOpen]   = useState(false);
   const [pin,       setPin]       = useState('');

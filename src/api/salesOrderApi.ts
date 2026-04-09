@@ -13,6 +13,12 @@ import type { SavedContact, SavedAddress, SavedWelcome, SavedInventory, SavedMis
 import type { RoomSizeRow } from '@/lib/supabase';
 
 // ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+const SOURCE_ID = 80; // Static source identifier for this booking app
+
+// ---------------------------------------------------------------------------
 // Payload builder
 // ---------------------------------------------------------------------------
 
@@ -85,6 +91,7 @@ export function buildSalesOrderPayload(params: {
     fur:             furTotal,
     start_rating_id: stopTypeRatio + disassembleBonus,
     end_rating_id:   2, // destination is always an apartment/community (end_type_id: 2)
+    source_id:   SOURCE_ID,
     note: (() => {
       const parts: string[] = [];
       if (welcome.notes?.trim())        parts.push(welcome.notes.trim());

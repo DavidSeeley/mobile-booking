@@ -26,7 +26,8 @@ function RedirectToAddress() { return <Navigate to="/address" replace />; }
 function RedirectToRoot()    { return <Navigate to="/" replace />; }
 
 export const router = createBrowserRouter([
-  { path: "/",             Component: Splash },
+  { path: "/",             element: <Navigate to="/online" replace /> },
+  { path: "/online",       Component: Splash },
   { path: "/welcome",      Component: Welcome },
   { path: "/contact",      Component: Contact },
   { path: "/service",      Component: RedirectToAddress },  // removed page — redirect mid-flow users
