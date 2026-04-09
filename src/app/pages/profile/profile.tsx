@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useProfile } from '@/hooks/useProfile';
+import { createContact } from '../../../api/contactApi';
 import type { BuildingAptSizeRow } from '@/lib/supabase';
 import { StepWelcome }  from './steps/StepWelcome';
 import { StepContact }  from './steps/StepContact';
@@ -26,9 +27,9 @@ export default function Profile() {
   const navigate = useNavigate();
   const {
     profile, buildings, loading, error,
-    saveProfile, addBuilding, updateBuilding, deleteBuilding,
+    insertProfile, addBuilding, updateBuilding, deleteBuilding,
     saveApartmentSizes, addApartmentSize, deleteApartmentSize,
-  } = useProfile();
+  } = useProfile({ blank: true });
 
   const [step, setStep] = useState(0);
 
@@ -37,30 +38,17 @@ export default function Profile() {
     company: '', first_name: '', last_name: '', email: '', phone: '',
     remit_address1: '', remit_address2: '', remit_city: '', remit_state: '', remit_zip: '',
   });
-  const [contactSaving, setContactSaving] = useState(false);
-  const [contactSaved, setContactSaved]   = useState(false);
+  const [contactSaving, setContactSaving]     = useState(false);
+  const [contactSaved, setContactSaved]       = useState(false);
+  const [enrolling, setEnrolling]             = useState(false);
+  const [enrollError, setEnrollError]         = useState<string | null>(null);
 
-  useEffect(() => {
-    if (profile) {
-      setContact({
-        company:            profile.company            ?? '',
-        first_name:         profile.first_name         ?? '',
-        last_name:          profile.last_name          ?? '',
-        email:              profile.email              ?? '',
-        phone:              profile.phone              ?? '',
-        remit_address1:     profile.remit_address1     ?? '',
-        remit_address2:     profile.remit_address2     ?? '',
-        remit_city:         profile.remit_city         ?? '',
-        remit_state:        profile.remit_state        ?? '',
-        remit_zip:          profile.remit_zip          ?? '',
-      });
-    }
-  }, [profile]);
+  // Enrollment always starts blank — no pre-fill from existing profile
 
   async function handleSaveContact() {
     setContactSaving(true);
     try {
-      await saveProfile(contact);
+      await insertProfile(contact);
       setContactSaved(true);
       setTimeout(() => setContactSaved(false), 2000);
     } finally {
@@ -111,6 +99,37 @@ export default function Profile() {
     setTimeout(() => setAptSaved(prev => ({ ...prev, [buildingId]: false })), 2000);
   }
 
+  // ── Enrollment API ────────────────────────────────────────────────────────
+  async function handleConfirm() {
+    setEnrolling(true);
+    setEnrollError(null);
+    try {
+      // Compute the max allowance across all unit types for all enrolled buildings
+      const allAllowances = buildings.flatMap(b => b.apartment_sizes.map(a => a.allowance));
+      const maxAllowance = allAllowances.length > 0 ? Math.max(...allAllowances) : undefined;
+
+      await createContact({
+        first_name:   contact.first_name  || undefined,
+        last_name:    contact.last_name   || undefined,
+        company_name: contact.company     || undefined,
+        email:        contact.email,
+        main_phone:   contact.phone       || undefined,
+        address:      contact.remit_address1 || undefined,
+        secondary_address: contact.remit_address2 || undefined,
+        city:         contact.remit_city  || undefined,
+        state:        contact.remit_state || undefined,
+        zip:          contact.remit_zip   || undefined,
+        payee:     1,
+        allowance: maxAllowance,
+      });
+      goNext();
+    } catch (err) {
+      setEnrollError(err instanceof Error ? err.message : 'Enrollment failed.');
+    } finally {
+      setEnrolling(false);
+    }
+  }
+
   // ── Nav ───────────────────────────────────────────────────────────────────
   const goNext = () => setStep(s => Math.min(s + 1, TOTAL_STEPS - 1));
   const goBack = () => setStep(s => Math.max(s - 1, 0));
@@ -145,7 +164,8 @@ export default function Profile() {
       case 4: return {
         onBack: goBack,
         nextLabel: 'Confirm',
-        onNext: goNext,
+        nextLoading: enrolling,
+        onNext: handleConfirm,
       };
       case 5: return null; // StepDone has its own buttons
       default: return { onBack: goBack, onNext: goNext };
@@ -204,6 +224,11 @@ export default function Profile() {
           {error}
         </p>
       )}
+      {enrollError && (
+        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3 mx-6 mt-4">
+          Enrollment failed: {enrollError}
+        </p>
+      )}
 
       {/* Step content */}
       <div className="flex-1 px-6 md:px-8 py-8 flex flex-col items-center">
@@ -233,10 +258,7 @@ export default function Profile() {
           <StepReview contact={contact} buildings={buildings} />
         )}
         {step === 5 && (
-          <StepDone
-            onGoAdmin={() => navigate('/admin')}
-            onGoSplash={() => navigate('/')}
-          />
+          <StepDone onFinish={() => navigate('/profile')} />
         )}
       </div>
 

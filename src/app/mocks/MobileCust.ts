@@ -22,6 +22,8 @@ export interface SavedWelcome {
   locationState: string;
   locationZip: string;
   unitType: string;
+  allowance?: number;
+  notes?: string;
 }
 
 let _savedWelcome: SavedWelcome | null = null;

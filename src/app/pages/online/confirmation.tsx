@@ -22,7 +22,7 @@ import { useNavigate } from 'react-router';
 import { 
   CheckCircle, MapPin, Calendar, Package, Home, User, Loader2, AlertCircle,
   Pencil, Phone, Mail, Check, X, ChevronUp, ChevronDown, Sun, Cloud,
-  ClipboardCopy, ClipboardCheck, PartyPopper, Building2, BedDouble
+  ClipboardCopy, ClipboardCheck, PartyPopper, Building2, BedDouble, MessageSquare
 } from 'lucide-react';
 import logoImage from '../../../assets/BookingLogo.png';
 import { DetailCard } from '@/components/detail-card';
@@ -298,10 +298,10 @@ function SummaryRow({
   value: string;
 }) {
   return (
-    <div className="flex items-center gap-2 py-1.5 border-b border-gray-100 last:border-0">
+    <div className="flex items-center gap-2 min-h-[36px] border-b border-gray-100 last:border-0">
       <span className="shrink-0 text-gray-400">{icon}</span>
-      <span className="text-xs text-gray-500 shrink-0">{label}</span>
-      <span className="text-xs text-gray-800 font-medium ml-auto text-right">{value || '—'}</span>
+      <span className="text-xs text-gray-500 font-bold shrink-0">{label}</span>
+      <span className="text-xs text-gray-800 ml-auto text-right">{value || '—'}</span>
     </div>
   );
 }
@@ -340,10 +340,14 @@ function EditActions({
 // ---------------------------------------------------------------------------
 export default function Confirmation() {
   const navigate = useNavigate();
-  const { formData, setContact, setAddress } = useFormData();
+  const { formData, setContact, setAddress, resetForm } = useFormData();
   const { roomSizes } = useRoomSizes();
-  const { profile, member } = useProfile();
+  const { profile, member, buildings } = useProfile({ payeeId: formData.payeeId ?? undefined });
   const payeeName = profile?.company || [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Your Community';
+
+  // trumuv_member_id lives on the building, not the profile — look it up from the PIN-selected building
+  const selectedBuilding = buildings.find(b => b.id === formData.buildingId);
+  const memberId = selectedBuilding?.trumuv_member_id ?? profile?.trumuv_member_id;
 
   // Navigation guard
   useEffect(() => {
@@ -456,7 +460,8 @@ export default function Confirmation() {
       miscellaneous: formData.miscellaneous,
       email:         contactEmail,
       roomSizes,
-      memberId:      profile?.trumuv_member_id,
+      memberId,
+      payeeId:       profile?.trumuv_payee_id,
     });
 
     // Pre-flight validation
@@ -514,7 +519,7 @@ export default function Confirmation() {
       submitStatus === 'idle';
 
     return (
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-1">
         {icon}
         <h2 className="text-sm text-gray-900 font-bold">{title}</h2>
         {showPencil && (
@@ -557,7 +562,7 @@ export default function Confirmation() {
           <div className="max-w-md w-full text-center">
             <div className="flex justify-center mb-6">
               <span className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100">
-                <PartyPopper className="h-10 w-10 text-green-600" />
+                <PartyPopper className="h-10 w-10 text-green-600 animate-party-pop" />
               </span>
             </div>
             <h1 className="text-xl text-gray-900 font-bold mb-3">Order submitted!</h1>
@@ -583,6 +588,14 @@ export default function Confirmation() {
                 <span className="text-sm text-gray-900 font-medium">{contactData?.email ?? ''}</span>
               </div>
             </div>
+
+            <button
+              type="button"
+              onClick={() => { resetForm(); navigate('/'); }}
+              className="mt-6 w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl transition-colors"
+            >
+              Start New Booking
+            </button>
           </div>
         </div>
       </div>
@@ -664,7 +677,7 @@ export default function Confirmation() {
           {addressData && welcomeData && (
             <DetailCard className="mb-4">
               <div className="flex items-center gap-2 mb-3">
-                <MapPin className="h-4 w-4 text-gray-600" />
+                <MapPin className="h-4 w-4 text-rose-500" />
                 <h2 className="text-sm text-gray-900 font-bold">Route</h2>
                 <span className="text-xs text-gray-400 ml-1">{addressData.formattedAddress} → {welcomeData.locationStreet}, {welcomeData.locationCity}, {welcomeData.locationState} {welcomeData.locationZip}</span>
               </div>
@@ -681,7 +694,7 @@ export default function Confirmation() {
             {/* Contact Card */}
             <div className="h-full" {...cardWrapperProps('contact')}>
               <DetailCard className="h-full mb-0 flex flex-col">
-                <CardHeader cardKey="contact" icon={<User className="h-4 w-4 text-gray-600" />} title="Contact information" />
+                <CardHeader cardKey="contact" icon={<User className="h-4 w-4 text-teal-500" />} title="Contact information" />
                 {editingCard === 'contact' ? (
                   <>
                     <div className="flex gap-3">
@@ -694,10 +707,37 @@ export default function Confirmation() {
                     <EditActions onSave={commitContact} onCancel={cancelEdit} />
                   </>
                 ) : contactData ? (
-                  <div className="flex flex-col flex-1 justify-between">
-                    <SummaryRow icon={<User className="h-3.5 w-3.5" />} label="Name" value={`${contactData.firstName} ${contactData.lastName}`.trim()} />
-                    <SummaryRow icon={<Phone className="h-3.5 w-3.5" />} label="Cell phone" value={contactData.cellPhone} />
-                    <SummaryRow icon={<Mail className="h-3.5 w-3.5" />} label="E-mail" value={contactData.email ?? ''} />
+                  <div className="flex flex-col flex-1">
+                    <div className="flex flex-col gap-1">
+                      <SummaryRow icon={<User className="h-3.5 w-3.5" />} label="Name" value={`${contactData.firstName} ${contactData.lastName}`.trim()} />
+                      <SummaryRow icon={<Phone className="h-3.5 w-3.5" />} label="Cell phone" value={contactData.cellPhone} />
+                      <SummaryRow icon={<Mail className="h-3.5 w-3.5" />} label="E-mail" value={contactData.email ?? ''} />
+                    </div>
+                    {/* Estimated inventory */}
+                    <div className="mt-2 pt-2 border-t border-gray-100">
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <Package className="h-4 w-4 text-violet-500 flex-shrink-0" />
+                        <p className="text-xs text-gray-500 font-bold">Estimated inventory</p>
+                      </div>
+                      <div className="flex gap-5">
+                        <div className="flex flex-col">
+                          <span className="text-xs text-gray-500 font-bold">Furniture</span>
+                          <span className="text-xs text-gray-800">{furnitureScore}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-xs text-gray-500 font-bold">Boxes</span>
+                          <span className="text-xs text-gray-800">{boxCount}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-xs text-gray-500 font-bold">Misc</span>
+                          <span className="text-xs text-gray-800">{miscScore}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-xs text-gray-500 font-bold">Rating</span>
+                          <span className="text-xs text-gray-800">{ratingTotal}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <p className="text-xs text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-lg p-3">No contact information saved. Please go back to step 2.</p>
@@ -707,12 +747,12 @@ export default function Confirmation() {
 
             {/* Combined Address + Destination Card */}
             <DetailCard className="h-full mb-0">
-              {/* From */}
-              <div className="flex items-center gap-2 mb-2">
-                <Home className="h-4 w-4 text-gray-600" />
-                <h2 className="text-sm text-gray-900 font-bold">Moving from</h2>
+              {/* Moving From header row — aligns with CardHeader in contact card */}
+              <div className="flex items-center gap-2 min-h-[28px] mb-1">
+                <Home className="h-4 w-4 text-orange-500" />
+                <h2 className="text-sm text-gray-900 font-bold flex-1">Moving from</h2>
                 {submitStatus === 'idle' && (
-                  <button type="button" onClick={() => openEdit('address')} className="ml-1 p-1 rounded hover:bg-gray-100 transition-colors" aria-label="Edit address">
+                  <button type="button" onClick={() => openEdit('address')} className="p-1 rounded hover:bg-gray-100 transition-colors" aria-label="Edit address">
                     <Pencil className="h-3.5 w-3.5 text-gray-400 hover:text-gray-700" />
                   </button>
                 )}
@@ -727,37 +767,49 @@ export default function Confirmation() {
                   </div>
                   <EditActions onSave={commitAddress} onCancel={cancelEdit} />
                 </>
-              ) : addressData ? (
-                <div className="flex flex-col">
-                  <SummaryRow icon={<MapPin className="h-3.5 w-3.5" />} label="Location" value={addressData.formattedAddress} />
-                  <SummaryRow icon={<Home className="h-3.5 w-3.5" />} label="Home type" value={addressData.homeType ?? '—'} />
-                </div>
               ) : (
-                <p className="text-xs text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-lg p-3">No address saved.</p>
+                <div className="flex flex-col">
+                  <SummaryRow icon={<MapPin className="h-3.5 w-3.5" />} label="Location" value={addressData?.formattedAddress ?? '—'} />
+                  <div className="h-[7px]" />
+                  <SummaryRow icon={<Home className="h-3.5 w-3.5" />} label="Home type" value={addressData?.homeType ?? '—'} />
+                  <div className="h-[7px]" />
+                  {welcomeData?.notes && (
+                    <>
+                      <div className="border-t border-gray-100 my-2" />
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <MessageSquare className="h-4 w-4 text-purple-500 flex-shrink-0" />
+                        <p className="text-xs font-bold text-gray-700">What matters most to you on moving day?</p>
+                      </div>
+                      <p className="text-xs text-gray-600 leading-relaxed">{welcomeData.notes}</p>
+                    </>
+                  )}
+                </div>
               )}
 
-              {/* Divider */}
-              <div className="my-3 border-t border-gray-100" />
-
-              {/* To */}
-              <div className="flex items-center gap-2 mb-2">
-                <Building2 className="h-4 w-4 text-gray-600" />
-                <h2 className="text-sm text-gray-900 font-bold">Moving to</h2>
-              </div>
-              {welcomeData ? (
-                <div className="flex flex-col">
-                  <SummaryRow icon={<MapPin className="h-3.5 w-3.5" />} label="Location" value={`${welcomeData.locationLabel} — ${welcomeData.locationStreet}, ${welcomeData.locationCity}, ${welcomeData.locationState} ${welcomeData.locationZip}`} />
-                  <SummaryRow icon={<BedDouble className="h-3.5 w-3.5" />} label="Unit type" value={welcomeData.unitType} />
-                </div>
-              ) : (
-                <p className="text-xs text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-lg p-3">No destination saved.</p>
-              )}
             </DetailCard>
 
             {/* Inventory Card */}
             <DetailCard className="h-full mb-0">
+              {/* Moving To */}
+              <div className="flex items-center gap-2 mb-2">
+                <Building2 className="h-4 w-4 text-blue-500" />
+                <h2 className="text-sm text-gray-900 font-bold">Moving to</h2>
+              </div>
+              {welcomeData ? (
+                <div className="flex flex-col mb-3">
+                  <SummaryRow icon={<MapPin className="h-3.5 w-3.5" />} label="Location" value={`${welcomeData.locationLabel} — ${welcomeData.locationStreet}, ${welcomeData.locationCity}, ${welcomeData.locationState} ${welcomeData.locationZip}`} />
+                  <div className="h-[7px]" />
+                  <SummaryRow icon={<BedDouble className="h-3.5 w-3.5" />} label="Unit type" value={welcomeData.unitType} />
+                  <div className="h-[7px]" />
+                </div>
+              ) : (
+                <p className="text-xs text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">No destination saved.</p>
+              )}
+
+              <div className="border-t border-gray-100 mb-3" />
+
               <div className="flex items-center gap-2 mb-3">
-                <Package className="h-4 w-4 text-gray-600" />
+                <Package className="h-4 w-4 text-violet-500" />
                 <h2 className="text-sm text-gray-900 font-bold">Rooms selected</h2>
               </div>
               {inventoryData && inventoryData.selectedRooms.length > 0 ? (
@@ -768,27 +820,6 @@ export default function Confirmation() {
                         {roomLabel(room, inventoryData.bedroomCount)}
                       </span>
                     ))}
-                  </div>
-                  <div className="mt-3 pt-3 border-t border-gray-100">
-                    <p className="text-xs text-gray-500 font-semibold mb-2">Estimated inventory</p>
-                    <div className="flex gap-6">
-                      <div className="flex flex-col">
-                        <span className="text-xs text-gray-400">Furniture</span>
-                        <span className="text-lg text-gray-800 font-medium">{furnitureScore}</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-xs text-gray-400">Boxes</span>
-                        <span className="text-lg text-gray-800 font-medium">{boxCount}</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-xs text-gray-400">Misc</span>
-                        <span className="text-lg text-gray-800 font-medium">{miscScore}</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-xs text-gray-400">Rating</span>
-                        <span className="text-lg text-gray-800 font-medium">{ratingTotal}</span>
-                      </div>
-                    </div>
                   </div>
                 </>
               ) : (

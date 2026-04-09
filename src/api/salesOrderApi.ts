@@ -35,8 +35,9 @@ export function buildSalesOrderPayload(params: {
   email:         string;
   roomSizes:     RoomSizeRow[];
   memberId?:     number;
+  payeeId?:      number;
 }): SalesOrderRequest {
-  const { contact, address, welcome, inventory, miscellaneous, email, roomSizes, memberId } = params;
+  const { contact, address, welcome, inventory, miscellaneous, email, roomSizes, memberId, payeeId } = params;
 
   // Furniture total: sum the fur value for each selected room from Supabase roomSizes.
   // For 'bedroom', multiply by bedroomCount (user may be moving multiple bedrooms).
@@ -54,6 +55,7 @@ export function buildSalesOrderPayload(params: {
   return {
     // Account manager
     member_id: memberId ?? 0,
+    payee_id:  payeeId  ?? undefined,
 
     // Customer
     first_name:   contact.firstName,
@@ -79,9 +81,16 @@ export function buildSalesOrderPayload(params: {
     // Service
     service_date: contact.serviceDate,
     lineup:       contact.preferredTime === 'morning' ? 1 : contact.preferredTime === 'afternoon' ? 2 : undefined,
-    box:          miscellaneous?.boxCount ?? 0,
-    fur:          furTotal,
-    rating_id:    stopTypeRatio + disassembleBonus,
+    box:             miscellaneous?.boxCount ?? 0,
+    fur:             furTotal,
+    start_rating_id: stopTypeRatio + disassembleBonus,
+    end_rating_id:   2, // destination is always an apartment/community (end_type_id: 2)
+    note: (() => {
+      const parts: string[] = [];
+      if (welcome.notes?.trim())        parts.push(welcome.notes.trim());
+      if (welcome.allowance != null && welcome.allowance > 0) parts.push(`Contribution: $${welcome.allowance}`);
+      return parts.length > 0 ? parts.join(' | ') : undefined;
+    })(),
   };
 }
 
@@ -239,7 +248,8 @@ export function validateSalesOrderData(
 
   // Numeric fields — must be defined and non-zero
   if (!orderData.member_id) missing.push('member_id');
-  if (orderData.rating_id === undefined || orderData.rating_id === null) missing.push('rating_id');
+  if (orderData.start_rating_id === undefined || orderData.start_rating_id === null) missing.push('start_rating_id');
+  if (orderData.end_rating_id === undefined || orderData.end_rating_id === null) missing.push('end_rating_id');
 
   return missing;
 }

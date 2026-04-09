@@ -9,6 +9,7 @@
 export interface SalesOrderRequest {
   // Account manager (required)
   member_id: number;
+  payee_id?: number;               // NetSirv payee ID (profile.trumuv_payee_id)
 
   // Customer (required)
   first_name: string;
@@ -32,7 +33,8 @@ export interface SalesOrderRequest {
   service_date: string;   // YYYY-MM-DD
   box: number;            // Number of boxes to move
   fur: number;            // Furniture score (sum of room fur values)
-  rating_id: number;      // Default: 1
+  start_rating_id: number; // Rating for origin (stop_type.ratio + disassemble bonus)
+  end_rating_id: number;   // Rating for destination (apartment/community type)
 
   // Optional
   company_name?: string;
@@ -41,6 +43,7 @@ export interface SalesOrderRequest {
   end_secondary_address?: string;  // Property/community name
   end_type_id: number;             // Default: 2 (apartment/community)
   lineup?: number;                 // 1 = morning, 2 = afternoon
+  note?: string;                   // Combined: customer memo + contribution allowance
   service_id?: number;
   source_id?: number;
 }

@@ -241,7 +241,7 @@ function PanelField({ label, children }: { label: string; children: React.ReactN
 }
 
 
-function PayeeRow({ payee, onToggleActive, onAddBuilding, onAddApt, onSaveApt, onUpdateBuilding, onDeleteBuilding, onDeleteApt, onUpdateProfile, onUpsertMember }: PayeeRowProps) {
+function PayeeRow({ payee, onToggleActive, onAddBuilding, onAddApt, onSaveApt, onUpdateBuilding, onDeleteBuilding, onDeleteApt, onUpdateProfile, onUpsertMember, onDeletePayee }: PayeeRowProps) {
   const [expanded,        setExpanded]        = useState(false);
   const [contactOpen,     setContactOpen]     = useState(false);
   const [billingOpen,     setBillingOpen]     = useState(false);
@@ -474,6 +474,16 @@ function PayeeRow({ payee, onToggleActive, onAddBuilding, onAddApt, onSaveApt, o
             {toggleError}
           </span>
         )}
+
+        {/* Delete payee */}
+        <button
+          type="button"
+          onClick={() => { if (confirm(`Delete "${payee.company || [payee.first_name, payee.last_name].filter(Boolean).join(' ')}"? This cannot be undone.`)) onDeletePayee(payee.id); }}
+          className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-400 transition-colors"
+          title="Delete payee"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
 
       </div>
 
@@ -715,7 +725,7 @@ const emptyNewPayee = {
 
 export default function Payees() {
   const navigate = useNavigate();
-  const { payees, loading, error, setActive, updateApartmentSize, addApartmentSize, updateBuilding, updateProfile, upsertMember, createPayee, addBuilding, deleteBuilding, deleteApartmentSize } = usePayees();
+  const { payees, loading, error, setActive, updateApartmentSize, addApartmentSize, updateBuilding, updateProfile, upsertMember, createPayee, addBuilding, deleteBuilding, deleteApartmentSize, deletePayee } = usePayees();
 
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [addOpen,   setAddOpen]   = useState(false);
@@ -866,6 +876,7 @@ export default function Payees() {
               onDeleteApt={deleteApartmentSize}
               onUpdateProfile={updateProfile}
               onUpsertMember={upsertMember}
+              onDeletePayee={deletePayee}
             />
           ))
         )}

@@ -6,7 +6,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { MapPin, Home, Calendar, X } from 'lucide-react';
+import { MapPin, Home, Calendar, X, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import logoImage from '../../../assets/BookingLogo.png';
 import { AllowanceModal } from '../../components/allowance-modal';
@@ -31,7 +31,7 @@ export default function Welcome() {
   const navigate = useNavigate();
   useAppStarted();
   const { formData, setWelcome } = useFormData();
-  const { buildings, loading: buildingsLoading } = useProfile();
+  const { buildings, loading: buildingsLoading } = useProfile({ payeeId: formData.payeeId ?? undefined });
 
   // Filter to only the PIN-selected building
   const filteredBuildings = formData.buildingId
@@ -44,6 +44,7 @@ export default function Welcome() {
   const [modalData, setModalData] = useState<{ unitName: string; allowance: number } | null>(null);
   const [moveDate, setMoveDate] = useState<Date | undefined>(undefined);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [notes, setNotes] = useState('');
 
   useEffect(() => {
     if (!calendarOpen) return;
@@ -91,6 +92,7 @@ export default function Welcome() {
         locationZip: selectedAddress.zip,
         unitType: unit.trim(),
         allowance: matched?.allowance ?? 0,
+        notes: notes.trim() || undefined,
       });
       navigate('/contact', {
         state: {
@@ -179,6 +181,22 @@ export default function Welcome() {
           {showErrors && !selectedId && (
             <p className="text-red-500 text-sm mt-2">Please select a location.</p>
           )}
+
+          {/* Notes Section — under location */}
+          <div className="mt-4">
+            <h2 className="text-gray-900 mb-3 font-bold flex items-center gap-2 section-heading">
+              <MessageSquare className="h-5 w-5 text-purple-500 flex-shrink-0" />
+              What matters most to you on moving day?
+              <span className="text-xs font-normal text-gray-400 ml-1">(optional)</span>
+            </h2>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="e.g. Being on time, careful handling of fragile items…"
+              rows={3}
+              className="memo-field w-full text-gray-900 placeholder:text-gray-400"
+            />
+          </div>
 
           {/* Move Date Card */}
           <div className="mt-5">

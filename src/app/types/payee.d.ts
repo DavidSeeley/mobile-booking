@@ -22,4 +22,5 @@ export interface PayeeRowProps {
   onDeleteApt: (payeeId: string, buildingId: string, aptId: string) => Promise<void>;
   onUpdateProfile: (payeeId: string, data: Partial<PayeeWithBuildings>) => Promise<void>;
   onUpsertMember: (payeeId: string, data: Pick<MemberRow, 'trumuv_member_id' | 'first_name' | 'last_name' | 'email' | 'phone'>) => Promise<void>;
+  onDeletePayee: (payeeId: string) => Promise<void>;
 }

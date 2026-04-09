@@ -6,11 +6,11 @@ export interface BuildingWithApts extends BuildingRow {
   apartment_sizes: BuildingAptSizeRow[];
 }
 
-export function useProfile() {
+export function useProfile(options?: { blank?: boolean; payeeId?: string }) {
   const [profile,  setProfile]  = useState<ProfileRow | null>(null);
   const [member,   setMember]   = useState<MemberRow | null>(null);
   const [buildings, setBuildings] = useState<BuildingWithApts[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!options?.blank);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -18,48 +18,45 @@ export function useProfile() {
     setLoading(true);
     setError(null);
     try {
-      // Load profile first — buildings are scoped to it via payee_id
-      const { data: profileData, error: profileErr } = await supabase
-        .from('profile')
-        .select('*')
-        .limit(1)
-        .maybeSingle();
+      // Load profile — by specific payeeId if provided, otherwise first record
+      const profileQuery = supabase.from('profile').select('*');
+      if (options?.payeeId) {
+        profileQuery.eq('id', options.payeeId);
+      } else {
+        profileQuery.limit(1);
+      }
+      const { data: profileData, error: profileErr } = await profileQuery.maybeSingle();
       if (profileErr) throw profileErr;
 
       setProfile(profileData);
 
-      // Fetch linked member (account manager)
-      if (profileData?.trumuv_member_id) {
-        const { data: memberData } = await supabase
-          .from('member')
-          .select('*')
-          .eq('trumuv_member_id', profileData.trumuv_member_id)
-          .maybeSingle();
-        setMember(memberData as MemberRow | null);
-      }
-
       if (profileData) {
-        // Fetch buildings belonging to this profile, or not yet assigned (null)
+        // Only fetch buildings explicitly linked to this profile via payee_id
         const { data: buildingsData, error: buildingsErr } = await supabase
           .from('buildings')
           .select('*, apartment_sizes:building_apartment_sizes(*)')
-          .or(`payee_id.eq.${profileData.id},payee_id.is.null`)
+          .eq('payee_id', profileData.id)
           .order('sort_order');
         if (buildingsErr) {
           console.error('[useProfile] buildings query error:', buildingsErr);
           throw buildingsErr;
         }
-        console.log('[useProfile] buildings fetched:', buildingsData?.length ?? 0, buildingsData);
 
-        setBuildings((buildingsData ?? []) as BuildingWithApts[]);
+        const typedBuildings = (buildingsData ?? []) as BuildingWithApts[];
+        setBuildings(typedBuildings);
 
-        // Backfill any buildings that predate the payee_id column
-        const unlinked = (buildingsData ?? []).filter(b => !b.payee_id);
-        if (unlinked.length > 0) {
-          await supabase
-            .from('buildings')
-            .update({ payee_id: profileData.id })
-            .is('payee_id', null);
+        // trumuv_member_id lives on buildings, not profile — find it from any building
+        const memberIdFromBuilding =
+          profileData.trumuv_member_id ??
+          typedBuildings.find(b => b.trumuv_member_id != null)?.trumuv_member_id;
+
+        if (memberIdFromBuilding) {
+          const { data: memberData } = await supabase
+            .from('member')
+            .select('*')
+            .eq('trumuv_member_id', memberIdFromBuilding)
+            .maybeSingle();
+          setMember(memberData as MemberRow | null);
         }
       } else {
         setBuildings([]);
@@ -71,8 +68,19 @@ export function useProfile() {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { if (!options?.blank) load(); }, [load, options?.blank, options?.payeeId]);
 
+  // Always INSERTs a new profile record — used by enrollment
+  const insertProfile = useCallback(async (data: Omit<ProfileRow, 'id'>): Promise<ProfileRow> => {
+    if (!supabase) throw new Error('Not connected.');
+    const { data: inserted, error: err } = await supabase
+      .from('profile').insert(data).select().single();
+    if (err) throw err;
+    setProfile(inserted as ProfileRow);
+    return inserted as ProfileRow;
+  }, []);
+
+  // Updates existing profile — used by admin/payee edit
   const saveProfile = useCallback(async (data: Omit<ProfileRow, 'id'>) => {
     if (!supabase) return;
     if (profile?.id) {
@@ -80,6 +88,7 @@ export function useProfile() {
       if (err) throw err;
       setProfile(prev => prev ? { ...prev, ...data } : prev);
     } else {
+      // Fallback insert (non-enrollment contexts only)
       const { data: inserted, error: err } = await supabase
         .from('profile').insert(data).select().single();
       if (err) throw err;
@@ -168,5 +177,5 @@ export function useProfile() {
     );
   }, []);
 
-  return { profile, member, buildings, loading, error, saveProfile, addBuilding, updateBuilding, deleteBuilding, saveApartmentSizes, addApartmentSize, deleteApartmentSize };
+  return { profile, member, buildings, loading, error, insertProfile, saveProfile, addBuilding, updateBuilding, deleteBuilding, saveApartmentSizes, addApartmentSize, deleteApartmentSize };
 }

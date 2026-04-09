@@ -403,7 +403,7 @@ export default function Address() {
           <button
             type="button"
             onClick={handleConfirm}
-            disabled={!address}
+            disabled={!address || !homeType}
             className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-xl inline-flex items-center gap-2 transition-colors"
           >
             Next

@@ -19,3 +19,6 @@ export type {
 export { SalesOrderApiError, isSuccessResponse, isFailedResponse } from './types';
 
 export { API_CONFIG } from './config';
+
+export { createContact } from './contactApi';
+export type { ContactRequest, ContactSuccessResponse, ContactFailedResponse } from './contactApi';

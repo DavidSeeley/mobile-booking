@@ -27,6 +27,7 @@ export interface WelcomeData {
   locationZip: string;
   unitType: string;
   allowance: number;
+  notes?: string;
 }
 
 export interface ContactData {
@@ -82,6 +83,7 @@ export interface FormData {
   service: ServiceData | null;
   profile: ProfileData | null;
   buildingId: string | null;  // Set from PIN lookup on splash
+  payeeId: string | null;     // Profile ID of the payee linked to the building
 }
 
 // ============================================================================
@@ -98,6 +100,7 @@ interface FormContextValue {
   setService: (data: ServiceData) => void;
   setProfile: (data: ProfileData) => void;
   setBuildingId: (id: string) => void;
+  setPayeeId: (id: string) => void;
   resetForm: () => void;
 }
 
@@ -131,6 +134,7 @@ function getInitialFormData(): FormData {
     service: null,
     profile: null,
     buildingId: null,
+    payeeId: null,
   };
 }
 
@@ -176,6 +180,10 @@ export function FormProvider({ children }: { children: ReactNode }) {
     setFormData(prev => ({ ...prev, buildingId: id }));
   }, []);
 
+  const setPayeeId = useCallback((id: string) => {
+    setFormData(prev => ({ ...prev, payeeId: id }));
+  }, []);
+
   const resetForm = useCallback(() => {
     const emptyData: FormData = {
       welcome: null,
@@ -205,8 +213,9 @@ export function FormProvider({ children }: { children: ReactNode }) {
     setService,
     setProfile,
     setBuildingId,
+    setPayeeId,
     resetForm,
-  }), [formData, setWelcome, setContact, setAddress, setInventory, setMiscellaneous, setService, setProfile, setBuildingId, resetForm]);
+  }), [formData, setWelcome, setContact, setAddress, setInventory, setMiscellaneous, setService, setProfile, setBuildingId, setPayeeId, resetForm]);
 
   return (
     <FormContext.Provider value={value}>

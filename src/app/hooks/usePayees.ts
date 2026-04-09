@@ -28,16 +28,18 @@ export function usePayees() {
 
       const profileList = profiles ?? [];
 
-      // Fetch all buildings with apartment sizes in one query
+      // Fetch only buildings with a valid payee_id link
       const { data: allBuildings, error: buildingsErr } = await supabase
         .from('buildings')
         .select('*, apartment_sizes:building_apartment_sizes(*)')
+        .not('payee_id', 'is', null)
         .order('sort_order');
       if (buildingsErr) throw buildingsErr;
 
-      // Group buildings by payee_id
+      // Group buildings by payee_id — only linked buildings included
       const buildingsByPayee: Record<string, BuildingWithApts[]> = {};
       for (const b of (allBuildings ?? []) as BuildingWithApts[]) {
+        if (!b.payee_id) continue; // skip orphans (defensive)
         if (!buildingsByPayee[b.payee_id]) buildingsByPayee[b.payee_id] = [];
         buildingsByPayee[b.payee_id].push(b);
       }

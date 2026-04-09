@@ -25,6 +25,10 @@ export default function Contact() {
   const [cellPhone, setCellPhone] = useState('');
   const [email, setEmail] = useState('');
   const [preferredTime, setPreferredTime] = useState<'morning' | 'afternoon' | undefined>(undefined);
+  const [showErrors, setShowErrors] = useState(false);
+
+  const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
+  const isValid = firstName.trim() !== '' && lastName.trim() !== '' && isValidEmail(email);
 
   return (
     <div className="h-screen w-full bg-gray-100 flex flex-col overflow-hidden">
@@ -46,10 +50,13 @@ export default function Contact() {
 
           {/* Card: Contact Info */}
           <DetailCard>
-            <FloatingLabelInput label="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} inputClassName="contact-info-field" />
-            <FloatingLabelInput label="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} inputClassName="contact-info-field" />
+            <FloatingLabelInput label="First Name *" value={firstName} onChange={(e) => setFirstName(e.target.value)} inputClassName={`contact-info-field${showErrors && !firstName.trim() ? ' border-red-500' : ''}`} />
+            <FloatingLabelInput label="Last Name *" value={lastName} onChange={(e) => setLastName(e.target.value)} inputClassName={`contact-info-field${showErrors && !lastName.trim() ? ' border-red-500' : ''}`} />
             <FloatingLabelInput label="Cell Phone" type="tel" format="phone" value={cellPhone} onChange={(e) => setCellPhone(e.target.value)} inputClassName="contact-info-field" />
-            <FloatingLabelInput label="Email Address" type="email" value={email} onChange={(e) => setEmail(e.target.value)} inputClassName="contact-info-field" />
+            <FloatingLabelInput label="Email Address *" type="email" value={email} onChange={(e) => setEmail(e.target.value)} inputClassName={`contact-info-field${showErrors && !isValidEmail(email) ? ' border-red-500' : ''}`} />
+            {showErrors && !isValidEmail(email) && (
+              <p className="text-red-500 text-xs -mt-2">Please enter a valid email address.</p>
+            )}
           </DetailCard>
 
           {/* Time preference heading */}
@@ -107,6 +114,7 @@ export default function Contact() {
           <button
             type="button"
             onClick={() => {
+              if (!isValid) { setShowErrors(true); return; }
               const service_date = state?.service_date ?? '';
               const serviceDateDisplay = state?.serviceDateDisplay ?? '';
               setContact({ firstName, lastName, cellPhone, email, serviceDate: service_date, serviceDateDisplay, preferredTime });

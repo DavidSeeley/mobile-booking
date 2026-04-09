@@ -13,5 +13,5 @@ export const API_CONFIG = {
 
 export const API_HEADERS = {
   'Content-Type':  'application/x-www-form-urlencoded',
-  'Authorization': `Bearer ${API_KEY}`,
+  'authorization': `Bearer ${API_KEY}`,
 } as const;

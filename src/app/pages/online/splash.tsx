@@ -36,7 +36,7 @@ function ServiceGrid() {
 
 export default function Splash() {
   const navigate  = useNavigate();
-  const { setBuildingId } = useFormData();
+  const { setBuildingId, setPayeeId } = useFormData();
 
   const [pinOpen,   setPinOpen]   = useState(false);
   const [pin,       setPin]       = useState('');
@@ -62,12 +62,13 @@ export default function Splash() {
       if (!supabase) throw new Error('Not connected.');
       const { data, error } = await supabase
         .from('buildings')
-        .select('id')
+        .select('id, payee_id')
         .eq('pin_code', pin)
         .maybeSingle();
       if (error) throw error;
       if (!data) { setPinError('PIN not recognised. Please try again.'); return; }
       setBuildingId(data.id);
+      if (data.payee_id) setPayeeId(data.payee_id);
       window.__appStarted = true;
       navigate('/welcome');
     } catch (err) {
