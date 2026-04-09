@@ -9,7 +9,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Box, Truck, Container, Users, Archive, Hand, KeyRound, Loader2, X } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import logoImage from '../../../assets/BookingLogo.png';
-import { supabase } from '@/lib/supabase';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/utils/env';
 import { useFormData } from '@/context/FormContext';
 
 const services = [
@@ -59,20 +59,29 @@ export default function Splash() {
     setChecking(true);
     setPinError(null);
     try {
-      if (!supabase) throw new Error('Not connected.');
-      const { data, error } = await supabase
-        .from('buildings')
-        .select('id, payee_id')
-        .eq('pin_code', pin)
-        .maybeSingle();
-      if (error) throw error;
-      if (!data) { setPinError('PIN not recognised. Please try again.'); return; }
-      setBuildingId(data.id);
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/validate-pin`, {
+        method:  'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey':        SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ pin }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setPinError(data?.error ?? 'PIN not recognised. Please try again.');
+        return;
+      }
+
+      setBuildingId(data.building_id);
       if (data.payee_id) setPayeeId(data.payee_id);
       window.__appStarted = true;
       navigate('/welcome');
     } catch (err) {
-      setPinError((err as Error).message);
+      setPinError((err as Error).message ?? 'Unable to connect. Please try again.');
     } finally {
       setChecking(false);
     }
