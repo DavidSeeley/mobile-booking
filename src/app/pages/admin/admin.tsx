@@ -8,7 +8,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
-import { Save, Check, Users, Plus, Trash2 } from 'lucide-react';
+import { Save, Check, Users, Plus, Trash2, ShieldCheck } from 'lucide-react';
 import { DetailCard } from '../../components/detail-card';
 import {
   loadAdminVars,
@@ -87,7 +87,17 @@ export default function Admin() {
   return (
     <div className="min-h-screen w-full bg-gray-100 flex flex-col">
       <header className="w-full px-6 md:px-8 py-4 border-b border-gray-200 bg-white flex items-center gap-4">
-        <h1 className="admin-title text-gray-900 font-bold flex-1">Admin</h1>
+        <div className="flex-1" />
+
+        {/* Admin button */}
+        <button
+          type="button"
+          onClick={() => navigate('/admin')}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors font-medium text-white bg-[#3d5068] hover:bg-[#2e3d51]"
+        >
+          <ShieldCheck className="h-4 w-4" />
+          <span className="admin-back-label">Admin</span>
+        </button>
 
         {/* Payees button */}
         <button
