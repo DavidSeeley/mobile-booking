@@ -276,8 +276,15 @@ export default function Address() {
     const state   = STATE_ABBR[rawState.toLowerCase()] ?? (a?.['ISO3166-2-lvl4'] ?? rawState).replace(/^US-/, '');
     const zipcode = a?.postcode || '';
 
-    setQuery(formatted);
-    setAddressLocal(formatted);
+    // Rebuild display string using abbreviated state
+    const formattedAbbr = [
+      [a?.house_number, a?.road].filter(Boolean).join(' ') || formatted,
+      a?.city || a?.town || a?.village || a?.municipality || '',
+      [state, a?.postcode || ''].filter(Boolean).join(' '),
+    ].filter(Boolean).join(', ');
+
+    setQuery(formattedAbbr);
+    setAddressLocal(formattedAbbr);
     setPosition({ lat, lng });
     setAddressParts({ street, city, state, zipcode });
     setSuggestions([]);
