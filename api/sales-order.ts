@@ -14,7 +14,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const apiKey = process.env.VITE_API_KEY ?? '';
+  const apiKey = process.env.API_KEY ?? process.env.VITE_API_KEY ?? '';
 
   try {
     // Body arrives as a string (application/x-www-form-urlencoded)
