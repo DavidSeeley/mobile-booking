@@ -100,6 +100,20 @@ export interface SurveyRow {
 // Per-building answers to survey questions.
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Table: building_contacts
+// Additional contacts per building (managers, leasing agents, etc.)
+// ---------------------------------------------------------------------------
+
+export interface BuildingContactRow {
+  id: string;
+  building_id: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  created_at?: string;
+}
+
 export interface BuildingSurveyResponseRow {
   id?: number;
   building_id: string; // uuid

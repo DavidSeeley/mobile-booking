@@ -11,10 +11,11 @@ import { useNavigate } from 'react-router';
 import {
   ArrowLeft, ChevronDown, ChevronUp, ChevronRight, Building2,
   LayoutList, Check, Save, Power, PowerOff, Trash2,
-  UserCircle, UserSquare, MapPin, Loader2, Plus, X, ClipboardList, ClipboardCheck,
+  UserCircle, UserSquare, MapPin, Loader2, Plus, X, ClipboardList, ClipboardCheck, Contact,
 } from 'lucide-react';
 import { DetailCard } from '../../components/detail-card';
 import { usePayees } from '@/hooks/usePayees';
+import { useBuildingContacts } from '@/hooks/useBuildingContacts';
 import { formatPhone } from '@/utils/formatPhone';
 import type { BuildingAptSizeRow } from '@/lib/supabase';
 import type { BuildingPanelProps, PayeeRowProps } from '@/types/payee';
@@ -24,7 +25,13 @@ import type { BuildingPanelProps, PayeeRowProps } from '@/types/payee';
 
 function BuildingCard({ payeeId, building, onAddApt, onSaveApt, onUpdateBuilding, onDeleteBuilding, onDeleteApt }: BuildingPanelProps) {
   const navigate = useNavigate();
-  const [unitsOpen, setUnitsOpen] = useState(false);
+  const [unitsOpen,    setUnitsOpen]    = useState(false);
+  const [contactsOpen, setContactsOpen] = useState(false);
+  const { contacts, loading: contactsLoading, addContact, deleteContact } = useBuildingContacts(building.id);
+  const [newName,  setNewName]  = useState('');
+  const [newPhone, setNewPhone] = useState('');
+  const [newEmail, setNewEmail] = useState('');
+  const [addingContact, setAddingContact] = useState(false);
   const [edits, setEdits] = useState<Record<string, BuildingAptSizeRow>>(
     Object.fromEntries(building.apartment_sizes.map(a => [a.id, { ...a }]))
   );
@@ -104,6 +111,14 @@ function BuildingCard({ payeeId, building, onAddApt, onSaveApt, onUpdateBuilding
         </span>
         <button
           type="button"
+          onClick={() => setContactsOpen(o => !o)}
+          className="p-1 rounded-lg hover:bg-green-50 transition-colors"
+          title="Building contacts"
+        >
+          <Contact className="h-4 w-4 text-green-500" />
+        </button>
+        <button
+          type="button"
           onClick={() => navigate(`/admin/survey/${building.id}`)}
           className="p-1 rounded-lg hover:bg-blue-50 transition-colors"
           title="View survey"
@@ -174,6 +189,72 @@ function BuildingCard({ payeeId, building, onAddApt, onSaveApt, onUpdateBuilding
           </button>
         </div>
       </div>
+
+      {/* Contacts accordion */}
+      {contactsOpen && (
+        <div className="border-t border-gray-100">
+          <div className="admin-table-header grid grid-cols-[1fr_120px_160px_36px] px-4 py-2">
+            <span className="text-xs font-bold text-white">Name</span>
+            <span className="text-xs font-bold text-white">Phone</span>
+            <span className="text-xs font-bold text-white">Email</span>
+            <span />
+          </div>
+
+          {contactsLoading ? (
+            <p className="px-4 py-2 text-xs text-gray-400">Loading…</p>
+          ) : contacts.length === 0 ? (
+            <p className="px-4 py-2 text-xs text-gray-400">No contacts yet.</p>
+          ) : contacts.map((c, i) => (
+            <div key={c.id}>
+              <div className="grid grid-cols-[1fr_120px_160px_36px] px-4 py-2 bg-white items-center gap-2">
+                <span className="text-sm text-gray-800 truncate">{c.name}</span>
+                <span className="text-sm text-gray-500 truncate">{c.phone ?? '—'}</span>
+                <span className="text-sm text-gray-500 truncate">{c.email ?? '—'}</span>
+                <button
+                  type="button"
+                  onClick={() => { if (confirm(`Delete contact "${c.name}"?`)) deleteContact(c.id); }}
+                  className="p-1 rounded hover:bg-red-50 text-red-400 transition-colors"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              {i < contacts.length - 1 && <div className="px-4"><div className="border-t border-gray-100" /></div>}
+            </div>
+          ))}
+
+          {/* Add contact row */}
+          <div className="border-t border-gray-100 grid grid-cols-[1fr_120px_160px_36px] px-4 py-2 bg-gray-50 items-center gap-2">
+            <input
+              type="text" placeholder="Name *"
+              value={newName} onChange={e => setNewName(e.target.value)}
+              className="text-sm text-gray-700 bg-white border border-gray-200 rounded px-2 py-1 outline-none focus:border-blue-400 w-full"
+            />
+            <input
+              type="text" placeholder="Phone"
+              value={newPhone} onChange={e => setNewPhone(e.target.value)}
+              className="text-sm text-gray-700 bg-white border border-gray-200 rounded px-2 py-1 outline-none focus:border-blue-400 w-full"
+            />
+            <input
+              type="text" placeholder="Email"
+              value={newEmail} onChange={e => setNewEmail(e.target.value)}
+              className="text-sm text-gray-700 bg-white border border-gray-200 rounded px-2 py-1 outline-none focus:border-blue-400 w-full"
+            />
+            <button
+              type="button"
+              disabled={addingContact || !newName.trim()}
+              onClick={async () => {
+                setAddingContact(true);
+                await addContact(newName.trim(), newPhone.trim(), newEmail.trim());
+                setNewName(''); setNewPhone(''); setNewEmail('');
+                setAddingContact(false);
+              }}
+              className="flex items-center justify-center gap-1 px-2 py-1 rounded text-xs font-medium text-white bg-[#3d5068] hover:bg-[#2e3d51] disabled:opacity-40 transition-colors"
+            >
+              {addingContact ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Units accordion */}
       {unitsOpen && (
