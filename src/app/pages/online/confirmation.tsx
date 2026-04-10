@@ -646,73 +646,30 @@ export default function Confirmation() {
             <h1 className="text-base text-gray-900 font-bold">All done — here's your summary</h1>
           </div>
 
-          {/* ── Contribution Card — full width ───────────────────────────── */}
-          <DetailCard className="mb-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Building2 className="h-4 w-4 text-gray-600" />
-              <h2 className="text-sm text-gray-900 font-bold">{payeeName}</h2>
-              {profile?.trumuv_payee_id != null && (
-                <span className="ml-auto text-xs text-gray-400">
-                  TruMuv ID: <span className="font-semibold text-gray-600">{profile.trumuv_payee_id}</span>
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-gray-600 leading-relaxed">
-              You're invited to take advantage of a great savings opportunity, and we hope it helps make your move a little less stressful. We want your move-in to be as convenient and smooth as possible, and we look forward to welcoming you as our newest resident!
-            </p>
-            <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-3">
-              <span className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Contribution</span>
-              <span className="text-2xl font-bold" style={{ background: 'linear-gradient(135deg, #f97316, #ec4899, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                ${(welcomeData?.allowance ?? 0).toLocaleString()}
-              </span>
-            </div>
-          </DetailCard>
-
-          {/* ── Date & Time Card ─────────────────────────────────────────── */}
-          {contactData && (
-            <DetailCard className="mb-4">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-blue-500 flex-shrink-0" />
-                  <div>
-                    <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold">Date of Service</p>
-                    <p className="text-sm font-bold text-gray-900">{contactData.serviceDateDisplay || '—'}</p>
-                  </div>
-                </div>
-                <div className="w-px h-8 bg-gray-200" />
-                <div className="flex items-center gap-2">
-                  {contactData.preferredTime === 'morning'
-                    ? <Sun className="h-4 w-4 text-amber-400 flex-shrink-0" />
-                    : contactData.preferredTime === 'afternoon'
-                      ? <Cloud className="h-4 w-4 text-sky-400 flex-shrink-0" />
-                      : <Sun className="h-4 w-4 text-gray-300 flex-shrink-0" />
-                  }
-                  <div>
-                    <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold">Time of Service</p>
-                    <p className="text-sm font-bold text-gray-900 capitalize">{contactData.preferredTime ?? '—'}</p>
-                  </div>
-                </div>
-              </div>
-            </DetailCard>
-          )}
-
-          {/* ── Route Map — full width ────────────────────────────────────── */}
-          {addressData && welcomeData && (
-            <DetailCard className="mb-4">
-              <div className="flex items-center gap-2 mb-3">
-                <MapPin className="h-4 w-4 text-rose-500" />
-                <h2 className="text-sm text-gray-900 font-bold">Route</h2>
-                <span className="text-xs text-gray-400 ml-1">{addressData.formattedAddress} → {welcomeData.locationStreet}, {welcomeData.locationCity}, {welcomeData.locationState} {welcomeData.locationZip}</span>
-              </div>
-              <RouteMap
-                origin={addressData.formattedAddress}
-                destination={`${welcomeData.locationStreet}, ${welcomeData.locationCity}, ${welcomeData.locationState} ${welcomeData.locationZip}`}
-              />
-            </DetailCard>
-          )}
-
-          {/* ── Row 1: Contact + Moving From ─────────────────────────────── */}
+          {/* ── Row 1: Contribution + Contact (2-col) ────────────────────── */}
           <div className="grid grid-cols-2 gap-4 items-stretch mb-4">
+
+            {/* Contribution Card */}
+            <DetailCard className="h-full mb-0">
+              <div className="flex items-center gap-2 mb-2">
+                <Building2 className="h-4 w-4 text-gray-600" />
+                <h2 className="text-sm text-gray-900 font-bold">{payeeName}</h2>
+                {profile?.trumuv_payee_id != null && (
+                  <span className="ml-auto text-xs text-gray-400">
+                    TruMuv ID: <span className="font-semibold text-gray-600">{profile.trumuv_payee_id}</span>
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-gray-600 leading-relaxed">
+                You're invited to take advantage of a great savings opportunity, and we hope it helps make your move a little less stressful. We want your move-in to be as convenient and smooth as possible, and we look forward to welcoming you as our newest resident!
+              </p>
+              <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-3">
+                <span className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Contribution</span>
+                <span className="text-2xl font-bold" style={{ background: 'linear-gradient(135deg, #f97316, #ec4899, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  ${(welcomeData?.allowance ?? 0).toLocaleString()}
+                </span>
+              </div>
+            </DetailCard>
 
             {/* Contact Card */}
             <div className="h-full" {...cardWrapperProps('contact')}>
@@ -764,9 +721,34 @@ export default function Confirmation() {
               </DetailCard>
             </div>
 
-            {/* Combined Address + Destination Card */}
+          </div>{/* end row 1 */}
+
+          {/* ── Date & Time (full width) ──────────────────────────────────── */}
+          <DetailCard className="mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Calendar className="h-4 w-4 text-teal-500" />
+              <h2 className="text-sm text-gray-900 font-bold">Date &amp; time</h2>
+            </div>
+            <div className="flex items-center gap-6">
+              <SummaryRow icon={<Calendar className="h-3.5 w-3.5" />} label="Service date" value={contactData?.serviceDateDisplay ?? contactData?.serviceDate ?? '—'} />
+            </div>
+          </DetailCard>
+
+          {/* ── Route Map (full width) ───────────────────────────────────── */}
+          {addressData?.formattedAddress && welcomeData && (
+            <DetailCard className="mb-4">
+              <RouteMap
+                origin={addressData.formattedAddress}
+                destination={`${welcomeData.locationStreet}, ${welcomeData.locationCity}, ${welcomeData.locationState} ${welcomeData.locationZip}`}
+              />
+            </DetailCard>
+          )}
+
+          {/* ── Row 2: Moving From + Moving To (2-col) ───────────────────── */}
+          <div className="grid grid-cols-2 gap-4 items-stretch">
+
+            {/* Moving From Card */}
             <DetailCard className="h-full mb-0">
-              {/* Moving From header row — aligns with CardHeader in contact card */}
               <div className="flex items-center gap-2 min-h-[28px] mb-1">
                 <Home className="h-4 w-4 text-orange-500" />
                 <h2 className="text-sm text-gray-900 font-bold flex-1">Moving from</h2>
@@ -791,7 +773,6 @@ export default function Confirmation() {
                   <SummaryRow icon={<MapPin className="h-3.5 w-3.5" />} label="Location" value={addressData?.formattedAddress ?? '—'} />
                   <div className="h-[7px]" />
                   <SummaryRow icon={<Home className="h-3.5 w-3.5" />} label="Home type" value={addressData?.homeType ?? '—'} />
-                  <div className="h-[7px]" />
                   {welcomeData?.notes && (
                     <>
                       <div className="border-t border-gray-100 my-2" />
@@ -804,17 +785,10 @@ export default function Confirmation() {
                   )}
                 </div>
               )}
-
             </DetailCard>
-
-          </div>{/* end row 1 */}
-
-          {/* ── Row 2: Moving To + Rooms ─────────────────────────────────── */}
-          <div className="grid grid-cols-2 gap-4 items-stretch">
 
             {/* Moving To + Rooms Card */}
             <DetailCard className="h-full mb-0">
-              {/* Moving To */}
               <div className="flex items-center gap-2 mb-2">
                 <Building2 className="h-4 w-4 text-blue-500" />
                 <h2 className="text-sm text-gray-900 font-bold">Moving to</h2>
@@ -837,15 +811,13 @@ export default function Confirmation() {
                 <h2 className="text-sm text-gray-900 font-bold">Rooms selected</h2>
               </div>
               {inventoryData && inventoryData.selectedRooms.length > 0 ? (
-                <>
-                  <div className="flex flex-wrap gap-1.5">
-                    {inventoryData.selectedRooms.map((room) => (
-                      <span key={room} className="inline-flex items-center px-2 py-0.5 text-xs font-semibold bg-blue-50 border border-blue-200 text-blue-800 rounded-full">
-                        {roomLabel(room, inventoryData.bedroomCount)}
-                      </span>
-                    ))}
-                  </div>
-                </>
+                <div className="flex flex-wrap gap-1.5">
+                  {inventoryData.selectedRooms.map((room) => (
+                    <span key={room} className="inline-flex items-center px-2 py-0.5 text-xs font-semibold bg-blue-50 border border-blue-200 text-blue-800 rounded-full">
+                      {roomLabel(room, inventoryData.bedroomCount)}
+                    </span>
+                  ))}
+                </div>
               ) : (
                 <p className="text-xs text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-lg p-3">No rooms selected. Please go back and select your inventory.</p>
               )}
