@@ -67,7 +67,7 @@ export default function Welcome() {
   const selectedAddress = filteredBuildings.find((b) => b.id === selectedId) ?? null;
   const aptSizes = selectedAddress?.apartment_sizes ?? [];
 
-  const isValid = !!selectedId && unit.trim() !== '';
+  const isValid = !!selectedId && unit.trim() !== '' && !!moveDate;
 
   function handleUnitChange(value: string) {
     setUnit(value);
@@ -207,7 +207,10 @@ export default function Welcome() {
             <button
               type="button"
               onClick={() => setCalendarOpen(true)}
-              className="w-full max-w-xs px-4 py-3 border-2 border-gray-300 rounded-xl bg-white text-left focus:outline-none focus:border-blue-500 hover:border-blue-400 transition-colors"
+              className={[
+                'w-full max-w-xs px-4 py-3 border-2 rounded-xl bg-white text-left focus:outline-none focus:border-blue-500 hover:border-blue-400 transition-colors',
+                showErrors && !moveDate ? 'border-red-500' : 'border-gray-300',
+              ].join(' ')}
             >
               {moveDate ? (
                 <span className="text-gray-900">{formatDate(moveDate)}</span>
@@ -215,6 +218,9 @@ export default function Welcome() {
                 <span className="text-gray-500">Select a date...</span>
               )}
             </button>
+            {showErrors && !moveDate && (
+              <p className="text-red-500 text-sm mt-2">Please select a move date.</p>
+            )}
           </div>
 
           {/* Unit Section */}
