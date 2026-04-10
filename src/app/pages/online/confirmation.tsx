@@ -711,8 +711,8 @@ export default function Confirmation() {
             </DetailCard>
           )}
 
-          {/* ── 3-column detail cards ─────────────────────────────────────── */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+          {/* ── Top 2-column: Contact + Building ─────────────────────────── */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch mb-4">
 
             {/* Contact Card */}
             <div className="h-full" {...cardWrapperProps('contact')}>
@@ -807,6 +807,11 @@ export default function Confirmation() {
 
             </DetailCard>
 
+          </div>{/* end top 2-column grid */}
+
+          {/* ── Bottom 2-column: Moving From + Moving To/Rooms ───────────── */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+
             {/* Inventory Card */}
             <DetailCard className="h-full mb-0">
               {/* Moving To */}
@@ -846,7 +851,7 @@ export default function Confirmation() {
               )}
             </DetailCard>
 
-          </div>{/* end 3-column grid */}
+          </div>{/* end bottom 2-column grid */}
 
           {/* ── API error banner ─────────────────────────────────────────── */}
           {submitStatus === 'error' && debugInfo && (
