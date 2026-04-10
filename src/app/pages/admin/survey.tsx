@@ -83,7 +83,7 @@ export default function Survey() {
         <DetailCard className="admin-table-card">
 
           {/* Column headers */}
-          <div className="admin-table-header grid grid-cols-[48px_1fr_1fr_80px_80px_36px] px-4 py-2">
+          <div className="admin-table-header grid grid-cols-[48px_1fr_180px_80px_80px_36px] px-4 py-2">
             <span className="admin-table-cell font-bold text-white text-center">#</span>
             <span className="admin-table-cell font-bold text-white">Question</span>
             <span className="admin-table-cell font-bold text-white">Note</span>
@@ -99,7 +99,7 @@ export default function Survey() {
             <p className="text-gray-400 text-sm px-4 py-6">No questions yet. Click Add Question to get started.</p>
           ) : local.map((row, index) => (
             <div key={row.id}>
-              <div className="grid grid-cols-[48px_1fr_1fr_80px_80px_36px] px-4 py-3 bg-white items-center gap-2">
+              <div className="grid grid-cols-[48px_1fr_180px_80px_80px_36px] px-4 py-3 bg-white items-center gap-2">
 
                 {/* Order */}
                 <input
@@ -161,7 +161,7 @@ export default function Survey() {
               </div>
 
               {index < local.length - 1 && (
-                <div className="grid grid-cols-[48px_1fr_1fr_80px_80px_36px] px-4">
+                <div className="grid grid-cols-[48px_1fr_180px_80px_80px_36px] px-4">
                   <div className="border-t border-gray-200" />
                   <div className="border-t border-gray-200" />
                   <div className="border-t border-gray-200" />
