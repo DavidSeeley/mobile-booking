@@ -29,9 +29,7 @@ export const GOOGLE_MAPS_MAP_ID: string =
 // ---------------------------------------------------------------------------
 
 /** Base URL for ApiSalesOrder v1.00 — routes through Vercel proxy to avoid CORS. */
-export const API_BASE_URL: string =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
-  "/api/sales-order";
+export const API_BASE_URL: string = "/api/sales-order";
 
 /** Bearer token for Sales Order API. */
 export const API_KEY: string =
