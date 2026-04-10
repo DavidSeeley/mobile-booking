@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { Plus, Trash2, Save, Check } from 'lucide-react';
+import { Plus, Trash2, Save, Check, ClipboardList, Users, ShieldCheck } from 'lucide-react';
 import { DetailCard } from '../../components/detail-card';
 import { useSurvey } from '@/hooks/useSurvey';
 import type { SurveyRow } from '@/lib/supabase';
@@ -43,7 +43,10 @@ export default function Survey() {
 
       {/* Header */}
       <header className="w-full px-6 md:px-8 py-4 border-b border-gray-200 bg-white flex items-center gap-4">
-        <h1 className="text-gray-900 font-bold flex-1 text-lg">Survey</h1>
+        <div className="flex items-center gap-2 flex-1">
+          <ClipboardList className="h-5 w-5 text-gray-500" />
+          <h1 className="text-gray-900 font-bold text-lg">Survey</h1>
+        </div>
 
         {/* Admin button */}
         <button
@@ -51,7 +54,18 @@ export default function Survey() {
           onClick={() => navigate('/admin/dashboard')}
           className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors font-medium text-white bg-[#3d5068] hover:bg-[#2e3d51]"
         >
-          Admin
+          <ShieldCheck className="h-4 w-4" />
+          <span>Admin</span>
+        </button>
+
+        {/* Payees button */}
+        <button
+          type="button"
+          onClick={() => navigate('/admin/payees')}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors font-medium text-white bg-[#3d5068] hover:bg-[#2e3d51]"
+        >
+          <Users className="h-4 w-4" />
+          <span>Payees</span>
         </button>
 
         {/* Save button */}
@@ -79,10 +93,13 @@ export default function Survey() {
 
           {/* Rows */}
           {loading ? (
-            <p className="text-gray-400 text-sm px-4 py-6">Loading…</p>
+            <p className="text-gray-400 text-sm px-4 py-6">Loading questions…</p>
+          ) : local.length === 0 ? (
+            <p className="text-gray-400 text-sm px-4 py-6">No questions yet. Click Add Question to get started.</p>
           ) : local.map((row, index) => (
             <div key={row.id}>
               <div className="grid grid-cols-[48px_1fr_80px_80px_36px] px-4 py-3 bg-white items-center gap-2">
+
                 {/* Order */}
                 <input
                   type="number"

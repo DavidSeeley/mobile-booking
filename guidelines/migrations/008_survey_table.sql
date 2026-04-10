@@ -19,11 +19,11 @@ CREATE TABLE IF NOT EXISTS survey (
 -- -----------------------------------------------------------------------------
 ALTER TABLE survey ENABLE ROW LEVEL SECURITY;
 
--- Anon can read active survey questions
+-- Anon can read all survey questions (admin uses anon key)
 CREATE POLICY "Anon can read survey questions"
 ON survey FOR SELECT
 TO anon
-USING (active = 1);
+USING (true);
 
 -- Admins can manage all survey records
 CREATE POLICY "Admins can manage survey"
