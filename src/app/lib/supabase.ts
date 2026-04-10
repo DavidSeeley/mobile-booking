@@ -80,3 +80,17 @@ export interface RoomSizeRow {
   fur: number;
   sort_order: number;
 }
+
+// ---------------------------------------------------------------------------
+// Table: survey
+// Survey questions shown during enrollment or sales calls.
+// ---------------------------------------------------------------------------
+
+export interface SurveyRow {
+  id: number;
+  order: number;
+  question: string;
+  yes_no: boolean;
+  note: string | null;
+  active: number;
+}
