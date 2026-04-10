@@ -56,7 +56,8 @@ function formatAddress(result: NominatimResult): string {
 
   const street = [a.house_number, a.road].filter(Boolean).join(' ');
   const city   = a.city || a.town || a.village || a.municipality || '';
-  const state  = a.state || '';
+  const rawSt  = a.state || '';
+  const state  = STATE_ABBR[rawSt.toLowerCase()] ?? (a['ISO3166-2-lvl4'] ?? rawSt).replace(/^US-/, '');
   const zip    = a.postcode || '';
 
   const parts: string[] = [];
