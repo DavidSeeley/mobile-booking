@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router';
 import {
   ArrowLeft, ChevronDown, ChevronUp, ChevronRight, Building2,
   LayoutList, Check, Save, Power, PowerOff, Trash2,
-  UserCircle, UserSquare, MapPin, Loader2, Plus, X,
+  UserCircle, UserSquare, MapPin, Loader2, Plus, X, ClipboardList,
 } from 'lucide-react';
 import { DetailCard } from '../../components/detail-card';
 import { usePayees } from '@/hooks/usePayees';
@@ -759,6 +759,16 @@ export default function Payees() {
 
       <header className="w-full px-6 md:px-8 py-4 border-b border-gray-200 bg-white flex items-center gap-4">
         <h1 className="text-gray-900 font-bold flex-1 text-lg">Payees</h1>
+
+        {/* Survey button */}
+        <button
+          type="button"
+          onClick={() => navigate('/admin/survey')}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors font-medium text-white bg-[#3d5068] hover:bg-[#2e3d51]"
+        >
+          <ClipboardList className="h-4 w-4" />
+          <span className="admin-back-label">Survey</span>
+        </button>
 
         {/* Admin button */}
         <button
