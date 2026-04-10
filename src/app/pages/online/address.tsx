@@ -30,6 +30,23 @@ import type { NominatimAddress, NominatimResult } from '@/types/address';
 import { useStopTypes } from '@/hooks/useStopTypes';
 
 // ---------------------------------------------------------------------------
+// State name → 2-letter abbreviation (Nominatim returns full names)
+// ---------------------------------------------------------------------------
+const STATE_ABBR: Record<string, string> = {
+  'alabama':'AL','alaska':'AK','arizona':'AZ','arkansas':'AR','california':'CA',
+  'colorado':'CO','connecticut':'CT','delaware':'DE','florida':'FL','georgia':'GA',
+  'hawaii':'HI','idaho':'ID','illinois':'IL','indiana':'IN','iowa':'IA',
+  'kansas':'KS','kentucky':'KY','louisiana':'LA','maine':'ME','maryland':'MD',
+  'massachusetts':'MA','michigan':'MI','minnesota':'MN','mississippi':'MS','missouri':'MO',
+  'montana':'MT','nebraska':'NE','nevada':'NV','new hampshire':'NH','new jersey':'NJ',
+  'new mexico':'NM','new york':'NY','north carolina':'NC','north dakota':'ND','ohio':'OH',
+  'oklahoma':'OK','oregon':'OR','pennsylvania':'PA','rhode island':'RI','south carolina':'SC',
+  'south dakota':'SD','tennessee':'TN','texas':'TX','utah':'UT','vermont':'VT',
+  'virginia':'VA','washington':'WA','west virginia':'WV','wisconsin':'WI','wyoming':'WY',
+  'district of columbia':'DC',
+};
+
+// ---------------------------------------------------------------------------
 // Format a Nominatim result as: "123 Main St, City, ST 12345"
 // Falls back to display_name if address parts are missing.
 // ---------------------------------------------------------------------------
@@ -254,7 +271,8 @@ export default function Address() {
 
     const street  = [a?.house_number, a?.road].filter(Boolean).join(' ') || formatted;
     const city    = a?.city || a?.town || a?.village || a?.municipality || '';
-    const state   = a?.state || '';
+    const rawState = a?.state || '';
+    const state   = STATE_ABBR[rawState.toLowerCase()] ?? (a?.['ISO3166-2-lvl4'] ?? rawState).replace(/^US-/, '');
     const zipcode = a?.postcode || '';
 
     setQuery(formatted);
