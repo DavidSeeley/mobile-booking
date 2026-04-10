@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router';
 import {
   ArrowLeft, ChevronDown, ChevronUp, ChevronRight, Building2,
   LayoutList, Check, Save, Power, PowerOff, Trash2,
-  UserCircle, UserSquare, MapPin, Loader2, Plus, X, ClipboardList,
+  UserCircle, UserSquare, MapPin, Loader2, Plus, X, ClipboardList, ClipboardCheck,
 } from 'lucide-react';
 import { DetailCard } from '../../components/detail-card';
 import { usePayees } from '@/hooks/usePayees';
@@ -101,6 +101,7 @@ function BuildingCard({ payeeId, building, onAddApt, onSaveApt, onUpdateBuilding
           <LayoutList className="h-3.5 w-3.5" />
           {building.apartment_sizes.length}
         </span>
+        <ClipboardCheck className="h-4 w-4 text-blue-400 shrink-0" />
         <button
           type="button"
           onClick={() => setUnitsOpen(o => !o)}
