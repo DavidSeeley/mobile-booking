@@ -18,13 +18,14 @@ export default function Contact() {
   const navigate = useNavigate();
   const { state } = useLocation();
   useAppStarted();
-  const { setContact } = useFormData();
+  const { formData, setContact } = useFormData();
+  const saved = formData.contact;
 
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [cellPhone, setCellPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [preferredTime, setPreferredTime] = useState<'morning' | 'afternoon' | undefined>(undefined);
+  const [firstName, setFirstName] = useState(() => saved?.firstName ?? '');
+  const [lastName, setLastName] = useState(() => saved?.lastName ?? '');
+  const [cellPhone, setCellPhone] = useState(() => saved?.cellPhone ?? '');
+  const [email, setEmail] = useState(() => saved?.email ?? '');
+  const [preferredTime, setPreferredTime] = useState<'morning' | 'afternoon' | undefined>(() => saved?.preferredTime ?? undefined);
   const [showErrors, setShowErrors] = useState(false);
 
   const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
@@ -115,8 +116,8 @@ export default function Contact() {
             type="button"
             onClick={() => {
               if (!isValid) { setShowErrors(true); return; }
-              const service_date = state?.service_date ?? '';
-              const serviceDateDisplay = state?.serviceDateDisplay ?? '';
+              const service_date = state?.service_date ?? saved?.serviceDate ?? '';
+              const serviceDateDisplay = state?.serviceDateDisplay ?? saved?.serviceDateDisplay ?? '';
               setContact({ firstName, lastName, cellPhone, email, serviceDate: service_date, serviceDateDisplay, preferredTime });
               navigate('/address', {
                 state: {

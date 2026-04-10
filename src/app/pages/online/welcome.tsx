@@ -38,13 +38,28 @@ export default function Welcome() {
     ? buildings.filter(b => b.id === formData.buildingId)
     : buildings;
   
+  const savedWelcome = formData.welcome;
+  const savedServiceDate = formData.contact?.serviceDate;
+
   const [selectedId, setSelectedId] = useState<string>('');
-  const [unit, setUnit] = useState<string>('');
+  const [unit, setUnit] = useState<string>(() => savedWelcome?.unitType ?? '');
   const [showErrors, setShowErrors] = useState<boolean>(false);
   const [modalData, setModalData] = useState<{ unitName: string; allowance: number } | null>(null);
-  const [moveDate, setMoveDate] = useState<Date | undefined>(undefined);
+  const [moveDate, setMoveDate] = useState<Date | undefined>(() => {
+    const sd = savedServiceDate;
+    if (!sd) return undefined;
+    const [y, m, d] = sd.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  });
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [notes, setNotes] = useState('');
+  const [notes, setNotes] = useState(() => savedWelcome?.notes ?? '');
+
+  // Restore building selection after buildings load
+  useEffect(() => {
+    if (selectedId || !savedWelcome || filteredBuildings.length === 0) return;
+    const matched = filteredBuildings.find(b => b.name === savedWelcome.locationLabel);
+    if (matched) setSelectedId(matched.id);
+  }, [filteredBuildings]);
 
   useEffect(() => {
     if (!calendarOpen) return;
