@@ -102,7 +102,7 @@ export interface SurveyRow {
 
 export interface BuildingSurveyResponseRow {
   id?: number;
-  building_id: string;
+  building_id: string; // uuid
   question_id: number;
   yes_no: boolean | null;
   note: string | null;

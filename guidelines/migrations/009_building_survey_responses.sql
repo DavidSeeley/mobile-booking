@@ -7,7 +7,7 @@
 
 CREATE TABLE IF NOT EXISTS building_survey_responses (
   id          bigint    GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  building_id text      NOT NULL REFERENCES buildings(id) ON DELETE CASCADE,
+  building_id uuid      NOT NULL REFERENCES buildings(id) ON DELETE CASCADE,
   question_id bigint    NOT NULL REFERENCES survey(id)    ON DELETE CASCADE,
   yes_no      boolean,
   note        text,
