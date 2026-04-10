@@ -193,7 +193,12 @@ function BuildingCard({ payeeId, building, onAddApt, onSaveApt, onUpdateBuilding
       {/* Contacts accordion */}
       {contactsOpen && (
         <div className="border-t border-gray-100">
-          <div className="admin-table-header grid grid-cols-[1fr_120px_160px_36px] px-4 py-2">
+          {/* Title bar */}
+          <div className="px-4 py-2 bg-white flex items-center gap-2 border-b border-gray-100">
+            <Contact className="h-4 w-4 text-green-500" />
+            <span className="text-sm font-bold text-gray-800">Building Contacts</span>
+          </div>
+          <div className="admin-table-header grid grid-cols-[180px_120px_160px_36px] px-4 py-2">
             <span className="text-xs font-bold text-white">Name</span>
             <span className="text-xs font-bold text-white">Phone</span>
             <span className="text-xs font-bold text-white">Email</span>
@@ -206,7 +211,7 @@ function BuildingCard({ payeeId, building, onAddApt, onSaveApt, onUpdateBuilding
             <p className="px-4 py-2 text-xs text-gray-400">No contacts yet.</p>
           ) : contacts.map((c, i) => (
             <div key={c.id}>
-              <div className="grid grid-cols-[1fr_120px_160px_36px] px-4 py-2 bg-white items-center gap-2">
+              <div className="grid grid-cols-[180px_120px_160px_36px] px-4 py-2 bg-white items-center gap-2">
                 <span className="text-sm text-gray-800 truncate">{c.name}</span>
                 <span className="text-sm text-gray-500 truncate">{c.phone ?? '—'}</span>
                 <span className="text-sm text-gray-500 truncate">{c.email ?? '—'}</span>
@@ -223,7 +228,7 @@ function BuildingCard({ payeeId, building, onAddApt, onSaveApt, onUpdateBuilding
           ))}
 
           {/* Add contact row */}
-          <div className="border-t border-gray-100 grid grid-cols-[1fr_120px_160px_36px] px-4 py-2 bg-gray-50 items-center gap-2">
+          <div className="border-t border-gray-100 grid grid-cols-[180px_120px_160px_36px] px-4 py-2 bg-gray-50 items-center gap-2">
             <input
               type="text" placeholder="Name *"
               value={newName} onChange={e => setNewName(e.target.value)}
