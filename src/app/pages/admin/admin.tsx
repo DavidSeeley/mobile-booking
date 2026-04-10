@@ -87,7 +87,7 @@ export default function Admin() {
   return (
     <div className="min-h-screen w-full bg-gray-100 flex flex-col">
       <header className="w-full px-6 md:px-8 py-4 border-b border-gray-200 bg-white flex items-center gap-4">
-        <div className="flex-1" />
+        <h1 className="admin-title text-gray-900 font-bold flex-1">Admin</h1>
 
         {/* Payees button */}
         <button
