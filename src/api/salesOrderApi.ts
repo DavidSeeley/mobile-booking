@@ -85,7 +85,9 @@ export function buildSalesOrderPayload(params: {
     end_type_id:           2,
 
     // Service
-    service_date: contact.serviceDate,
+    service_date: contact.serviceDate
+      ? contact.serviceDate.split('-').slice(1).concat(contact.serviceDate.split('-')[0]).join('-')
+      : '',
     lineup:       contact.preferredTime === 'morning' ? 1 : contact.preferredTime === 'afternoon' ? 2 : undefined,
     box:             miscellaneous?.boxCount ?? 0,
     fur:             furTotal,
