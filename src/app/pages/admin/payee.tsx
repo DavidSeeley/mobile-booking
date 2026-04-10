@@ -109,29 +109,43 @@ function BuildingCard({ payeeId, building, onAddApt, onSaveApt, onUpdateBuilding
           <LayoutList className="h-3.5 w-3.5" />
           {building.apartment_sizes.length}
         </span>
+
+        {/* Contacts toggle */}
         <button
           type="button"
           onClick={() => setContactsOpen(o => !o)}
-          className="p-1 rounded-lg hover:bg-green-50 transition-colors"
           title="Building contacts"
+          className={`p-1 rounded-lg transition-colors ${
+            contactsOpen
+              ? 'border border-green-500 bg-green-500/20'
+              : 'border border-transparent'
+          }`}
         >
           <Contact className="h-4 w-4 text-green-500" />
         </button>
+
+        {/* Survey icon */}
         <button
           type="button"
           onClick={() => navigate(`/admin/survey/${building.id}`)}
-          className="p-1 rounded-lg hover:bg-blue-50 transition-colors"
           title="View survey"
+          className="p-1 rounded-lg border border-transparent transition-colors hover:border-blue-400 hover:bg-blue-400/20"
         >
           <ClipboardCheck className="h-4 w-4 text-blue-400" />
         </button>
+
+        {/* Units toggle */}
         <button
           type="button"
           onClick={() => setUnitsOpen(o => !o)}
-          className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors"
           title="Toggle units"
+          className={`p-1 rounded-lg transition-colors ${
+            unitsOpen
+              ? 'border border-orange-400 bg-orange-400/20'
+              : 'border border-transparent'
+          }`}
         >
-          {unitsOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          <LayoutList className="h-4 w-4 text-orange-400" />
         </button>
         <button
           type="button"
