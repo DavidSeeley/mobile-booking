@@ -758,15 +758,17 @@ export default function Payees() {
     <div className="min-h-screen w-full bg-gray-100 flex flex-col">
 
       <header className="w-full px-6 md:px-8 py-4 border-b border-gray-200 bg-white flex items-center gap-4">
+        <h1 className="text-gray-900 font-bold flex-1 text-lg">Payees</h1>
+
+        {/* Admin button */}
         <button
           type="button"
-          onClick={() => navigate('/admin')}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 text-gray-700"
+          onClick={() => navigate('/admin/dashboard')}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors font-medium text-white bg-[#3d5068] hover:bg-[#2e3d51]"
         >
-          <ArrowLeft className="h-5 w-5" />
-          <span className="font-medium">Admin</span>
+          <ArrowLeft className="h-4 w-4" />
+          <span className="admin-back-label">Admin</span>
         </button>
-        <h1 className="text-gray-900 font-bold flex-1 text-lg">Payees</h1>
 
         {/* Add Payee */}
         <button
