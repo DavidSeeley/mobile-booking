@@ -25,6 +25,10 @@ export default defineConfig({
     charset: 'ascii',
   },
 
+  build: {
+    chunkSizeWarningLimit: 800,
+  },
+
   server: {
     https: false, // Disable HTTPS for local development
     proxy: {

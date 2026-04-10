@@ -30,7 +30,7 @@ export interface SalesOrderRequest {
   end_zipcode: string;
 
   // Service details (required)
-  service_date: string;   // YYYY-MM-DD
+  service_date: string;   // MM-DD-YYYY
   box: number;            // Number of boxes to move
   fur: number;            // Furniture score (sum of room fur values)
   start_rating_id: number; // Rating for origin (stop_type.ratio + disassemble bonus)

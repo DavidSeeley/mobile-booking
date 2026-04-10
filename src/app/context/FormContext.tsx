@@ -194,6 +194,7 @@ export function FormProvider({ children }: { children: ReactNode }) {
       service: null,
       profile: null,
       buildingId: null,
+      payeeId: null,
     };
     setFormData(emptyData);
     if (typeof window !== 'undefined') {
