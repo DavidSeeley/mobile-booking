@@ -2,7 +2,7 @@
  * =========================================================================
  * Survey Page — Admin
  * =========================================================================
- * Editable list of survey questions pulled from Supabase.
+ * Master list of survey questions. Answers are tracked per-building.
  */
 
 import { useState, useEffect } from 'react';
@@ -22,7 +22,7 @@ export default function Survey() {
 
   useEffect(() => { setLocal(questions); }, [questions]);
 
-  function handleChange(id: number, field: keyof SurveyRow, value: string | boolean | number) {
+  function handleChange(id: number, field: keyof SurveyRow, value: string | number) {
     setLocal(prev => prev.map(q => q.id === id ? { ...q, [field]: value } : q));
   }
 
@@ -45,10 +45,9 @@ export default function Survey() {
       <header className="w-full px-6 md:px-8 py-4 border-b border-gray-200 bg-white flex items-center gap-4">
         <div className="flex items-center gap-2 flex-1">
           <ClipboardList className="h-5 w-5 text-gray-500" />
-          <h1 className="text-gray-900 font-bold text-lg">Survey</h1>
+          <h1 className="text-gray-900 font-bold text-lg">Survey Questions</h1>
         </div>
 
-        {/* Admin button */}
         <button
           type="button"
           onClick={() => navigate('/admin/dashboard')}
@@ -58,7 +57,6 @@ export default function Survey() {
           <span>Admin</span>
         </button>
 
-        {/* Payees button */}
         <button
           type="button"
           onClick={() => navigate('/admin/payees')}
@@ -68,7 +66,6 @@ export default function Survey() {
           <span>Payees</span>
         </button>
 
-        {/* Save button */}
         <button
           type="button"
           onClick={handleSave}
@@ -83,11 +80,9 @@ export default function Survey() {
         <DetailCard className="admin-table-card">
 
           {/* Column headers */}
-          <div className="admin-table-header grid grid-cols-[48px_1fr_180px_80px_80px_36px] px-4 py-2">
+          <div className="admin-table-header grid grid-cols-[48px_1fr_80px_36px] px-4 py-2">
             <span className="admin-table-cell font-bold text-white text-center">#</span>
             <span className="admin-table-cell font-bold text-white">Question</span>
-            <span className="admin-table-cell font-bold text-white">Note</span>
-            <span className="admin-table-cell font-bold text-white text-center">Yes/No</span>
             <span className="admin-table-cell font-bold text-white text-center">Active</span>
             <span />
           </div>
@@ -99,7 +94,7 @@ export default function Survey() {
             <p className="text-gray-400 text-sm px-4 py-6">No questions yet. Click Add Question to get started.</p>
           ) : local.map((row, index) => (
             <div key={row.id}>
-              <div className="grid grid-cols-[48px_1fr_180px_80px_80px_36px] px-4 py-3 bg-white items-center gap-2">
+              <div className="grid grid-cols-[48px_1fr_80px_36px] px-4 py-3 bg-white items-center gap-2">
 
                 {/* Order */}
                 <input
@@ -117,26 +112,6 @@ export default function Survey() {
                   placeholder="Enter question…"
                   className="admin-table-cell text-gray-800 bg-transparent border-b border-gray-200 outline-none w-full focus:border-blue-500"
                 />
-
-                {/* Note */}
-                <input
-                  type="text"
-                  value={row.note ?? ''}
-                  onChange={e => handleChange(row.id, 'note', e.target.value)}
-                  placeholder="Add note…"
-                  className="admin-table-cell text-gray-800 bg-transparent border-b border-gray-200 outline-none w-full focus:border-blue-500"
-                />
-
-                {/* Yes/No toggle */}
-                <div className="flex justify-center">
-                  <button
-                    type="button"
-                    onClick={() => handleChange(row.id, 'yes_no', !row.yes_no)}
-                    className={`px-2 py-0.5 rounded text-xs font-semibold transition-colors ${row.yes_no ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-400'}`}
-                  >
-                    {row.yes_no ? 'Yes/No' : 'Open'}
-                  </button>
-                </div>
 
                 {/* Active toggle */}
                 <div className="flex justify-center">
@@ -161,8 +136,7 @@ export default function Survey() {
               </div>
 
               {index < local.length - 1 && (
-                <div className="grid grid-cols-[48px_1fr_180px_80px_80px_36px] px-4">
-                  <div className="border-t border-gray-200" />
+                <div className="grid grid-cols-[48px_1fr_80px_36px] px-4">
                   <div className="border-t border-gray-200" />
                   <div className="border-t border-gray-200" />
                   <div className="border-t border-gray-200" />
@@ -173,7 +147,7 @@ export default function Survey() {
           ))}
 
           {/* Add row */}
-          <div className="px-4 pt-3 pb-2 border-t border-gray-200 flex items-center gap-2">
+          <div className="px-4 pt-3 pb-2 border-t border-gray-200">
             <button
               type="button"
               onClick={handleAdd}
