@@ -16,6 +16,7 @@ import {
 import { DetailCard } from '../../components/detail-card';
 import { usePayees } from '@/hooks/usePayees';
 import { useBuildingContacts } from '@/hooks/useBuildingContacts';
+import { useBuildingSurvey } from '@/hooks/useBuildingSurvey';
 import { formatPhone } from '@/utils/formatPhone';
 import type { BuildingAptSizeRow } from '@/lib/supabase';
 import type { BuildingPanelProps, PayeeRowProps } from '@/types/payee';
@@ -27,7 +28,11 @@ function BuildingCard({ payeeId, building, onAddApt, onSaveApt, onUpdateBuilding
   const navigate = useNavigate();
   const [unitsOpen,    setUnitsOpen]    = useState(false);
   const [contactsOpen, setContactsOpen] = useState(false);
+  const [surveyOpen,   setSurveyOpen]   = useState(false);
   const { contacts, loading: contactsLoading, addContact, deleteContact } = useBuildingContacts(building.id);
+  const { questions: surveyQuestions, loading: surveyLoading, saveResponse } = useBuildingSurvey(building.id);
+  const [surveyNotes,  setSurveyNotes]  = useState<Record<number, string>>({});
+  const [surveySaving, setSurveySaving] = useState<Record<number, boolean>>({});
   const [newName,  setNewName]  = useState('');
   const [newPhone, setNewPhone] = useState('');
   const [newEmail, setNewEmail] = useState('');
@@ -105,11 +110,6 @@ function BuildingCard({ payeeId, building, onAddApt, onSaveApt, onUpdateBuilding
             {[fields.address, fields.city, fields.state, fields.zip].filter(Boolean).join(', ') || 'No address'}
           </p>
         </div>
-        <span className="text-xs text-gray-400 flex items-center gap-1">
-          <LayoutList className="h-3.5 w-3.5" />
-          {building.apartment_sizes.length}
-        </span>
-
         {/* Contacts toggle */}
         <button
           type="button"
@@ -124,12 +124,16 @@ function BuildingCard({ payeeId, building, onAddApt, onSaveApt, onUpdateBuilding
           <Contact className="h-4 w-4 text-green-500" />
         </button>
 
-        {/* Survey icon */}
+        {/* Survey toggle */}
         <button
           type="button"
-          onClick={() => navigate(`/admin/survey/${building.id}`)}
-          title="View survey"
-          className="p-1 rounded-lg border border-transparent transition-colors hover:border-blue-400 hover:bg-blue-400/20"
+          onClick={() => setSurveyOpen(o => !o)}
+          title="Building survey"
+          className={`p-1 rounded-lg transition-colors ${
+            surveyOpen
+              ? 'border border-blue-400 bg-blue-400/20'
+              : 'border border-transparent'
+          }`}
         >
           <ClipboardCheck className="h-4 w-4 text-blue-400" />
         </button>
@@ -272,6 +276,69 @@ function BuildingCard({ payeeId, building, onAddApt, onSaveApt, onUpdateBuilding
               {addingContact ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Survey accordion */}
+      {surveyOpen && (
+        <div className="border-t border-gray-100">
+          <div className="px-4 py-2 bg-white flex items-center gap-2 border-b border-gray-100">
+            <ClipboardCheck className="h-4 w-4 text-blue-400" />
+            <span className="text-sm font-bold text-gray-800">Building Survey</span>
+          </div>
+          <div className="admin-table-header grid grid-cols-[24px_1fr_80px_160px] px-4 py-2">
+            <span className="text-xs font-bold text-white text-center">#</span>
+            <span className="text-xs font-bold text-white">Question</span>
+            <span className="text-xs font-bold text-white text-center">Response</span>
+            <span className="text-xs font-bold text-white">Note</span>
+          </div>
+          {surveyLoading ? (
+            <p className="px-4 py-2 text-xs text-gray-400">Loading…</p>
+          ) : surveyQuestions.length === 0 ? (
+            <p className="px-4 py-2 text-xs text-gray-400">No questions configured.</p>
+          ) : surveyQuestions.map((q, i) => {
+            const resp = q.response?.yes_no ?? null;
+            return (
+              <div key={q.id}>
+                <div className="grid grid-cols-[24px_1fr_80px_160px] px-4 py-2 bg-white items-center gap-2">
+                  <span className="text-xs text-gray-400 text-center">{q.order}</span>
+                  <span className="text-xs text-gray-700 leading-tight">{q.question}</span>
+                  <div className="flex justify-center">
+                    <button
+                      type="button"
+                      disabled={surveySaving[q.id]}
+                      onClick={async () => {
+                        setSurveySaving(p => ({ ...p, [q.id]: true }));
+                        const next = resp === null ? true : resp ? false : null;
+                        const note = surveyNotes[q.id] ?? q.response?.note ?? null;
+                        await saveResponse(q.id, next, note || null);
+                        setSurveySaving(p => ({ ...p, [q.id]: false }));
+                      }}
+                      className={`px-2 py-0.5 rounded text-xs font-bold transition-colors ${
+                        resp === true  ? 'bg-green-500 text-white' :
+                        resp === false ? 'bg-red-400 text-white'   :
+                                        'bg-gray-100 text-gray-400'
+                      }`}
+                    >
+                      {surveySaving[q.id] ? '…' : resp === true ? 'Yes' : resp === false ? 'No' : '—'}
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    value={surveyNotes[q.id] ?? q.response?.note ?? ''}
+                    onChange={e => setSurveyNotes(p => ({ ...p, [q.id]: e.target.value }))}
+                    onBlur={async () => {
+                      const note = surveyNotes[q.id] ?? null;
+                      await saveResponse(q.id, resp, note || null);
+                    }}
+                    placeholder="Note…"
+                    className="text-xs text-gray-700 bg-transparent border-b border-gray-200 outline-none w-full focus:border-blue-400 placeholder:text-gray-300"
+                  />
+                </div>
+                {i < surveyQuestions.length - 1 && <div className="px-4"><div className="border-t border-gray-100" /></div>}
+              </div>
+            );
+          })}
         </div>
       )}
 
