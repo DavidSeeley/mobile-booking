@@ -83,9 +83,10 @@ export default function Survey() {
         <DetailCard className="admin-table-card">
 
           {/* Column headers */}
-          <div className="admin-table-header grid grid-cols-[48px_1fr_80px_80px_36px] px-4 py-2">
+          <div className="admin-table-header grid grid-cols-[48px_1fr_1fr_80px_80px_36px] px-4 py-2">
             <span className="admin-table-cell font-bold text-white text-center">#</span>
             <span className="admin-table-cell font-bold text-white">Question</span>
+            <span className="admin-table-cell font-bold text-white">Note</span>
             <span className="admin-table-cell font-bold text-white text-center">Yes/No</span>
             <span className="admin-table-cell font-bold text-white text-center">Active</span>
             <span />
@@ -98,7 +99,7 @@ export default function Survey() {
             <p className="text-gray-400 text-sm px-4 py-6">No questions yet. Click Add Question to get started.</p>
           ) : local.map((row, index) => (
             <div key={row.id}>
-              <div className="grid grid-cols-[48px_1fr_80px_80px_36px] px-4 py-3 bg-white items-center gap-2">
+              <div className="grid grid-cols-[48px_1fr_1fr_80px_80px_36px] px-4 py-3 bg-white items-center gap-2">
 
                 {/* Order */}
                 <input
@@ -114,6 +115,15 @@ export default function Survey() {
                   value={row.question}
                   onChange={e => handleChange(row.id, 'question', e.target.value)}
                   placeholder="Enter question…"
+                  className="admin-table-cell text-gray-800 bg-transparent border-b border-gray-200 outline-none w-full focus:border-blue-500"
+                />
+
+                {/* Note */}
+                <input
+                  type="text"
+                  value={row.note ?? ''}
+                  onChange={e => handleChange(row.id, 'note', e.target.value)}
+                  placeholder="Add note…"
                   className="admin-table-cell text-gray-800 bg-transparent border-b border-gray-200 outline-none w-full focus:border-blue-500"
                 />
 
@@ -151,7 +161,7 @@ export default function Survey() {
               </div>
 
               {index < local.length - 1 && (
-                <div className="grid grid-cols-[48px_1fr_80px_80px_36px] px-4">
+                <div className="grid grid-cols-[48px_1fr_1fr_80px_80px_36px] px-4">
                   <div className="border-t border-gray-200" />
                   <div className="border-t border-gray-200" />
                   <div className="border-t border-gray-200" />
