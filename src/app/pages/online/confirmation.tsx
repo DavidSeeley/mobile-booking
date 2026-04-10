@@ -807,12 +807,7 @@ export default function Confirmation() {
 
             </DetailCard>
 
-          </div>{/* end top 2-column grid */}
-
-          {/* ── Bottom 2-column: Moving From + Moving To/Rooms ───────────── */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
-
-            {/* Inventory Card */}
+            {/* Moving To + Rooms Card */}
             <DetailCard className="h-full mb-0">
               {/* Moving To */}
               <div className="flex items-center gap-2 mb-2">
@@ -851,7 +846,7 @@ export default function Confirmation() {
               )}
             </DetailCard>
 
-          </div>{/* end bottom 2-column grid */}
+          </div>{/* end 2-column grid */}
 
           {/* ── API error banner ─────────────────────────────────────────── */}
           {submitStatus === 'error' && debugInfo && (
