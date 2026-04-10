@@ -21,6 +21,7 @@ import AdminSplash from "./pages/admin/AdminSplash";
 import Admin from "./pages/admin/admin";
 import Payees from "./pages/admin/payee";
 import Survey from "./pages/admin/survey";
+import BuildingSurvey from "./pages/admin/building-survey";
 import Profile from "./pages/profile/profile";
 
 // Redirect helpers — used for removed routes and catch-all
@@ -40,7 +41,8 @@ export const router = createBrowserRouter([
   { path: "/admin",           Component: AdminSplash },
   { path: "/admin/dashboard", Component: Admin },
   { path: "/admin/payees",    Component: Payees },
-  { path: "/admin/survey",    Component: Survey },
+  { path: "/admin/survey",                    Component: Survey },
+  { path: "/admin/survey/:buildingId",        Component: BuildingSurvey },
   { path: "/profile",      Component: Profile },
   { path: "*",             Component: RedirectToRoot },     // catch-all
 ]);

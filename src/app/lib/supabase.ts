@@ -94,3 +94,17 @@ export interface SurveyRow {
   note: string | null;
   active: number;
 }
+
+// ---------------------------------------------------------------------------
+// Table: building_survey_responses
+// Per-building answers to survey questions.
+// ---------------------------------------------------------------------------
+
+export interface BuildingSurveyResponseRow {
+  id?: number;
+  building_id: string;
+  question_id: number;
+  yes_no: boolean | null;
+  note: string | null;
+  updated_at?: string;
+}

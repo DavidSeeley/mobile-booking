@@ -23,6 +23,7 @@ import type { BuildingPanelProps, PayeeRowProps } from '@/types/payee';
 
 
 function BuildingCard({ payeeId, building, onAddApt, onSaveApt, onUpdateBuilding, onDeleteBuilding, onDeleteApt }: BuildingPanelProps) {
+  const navigate = useNavigate();
   const [unitsOpen, setUnitsOpen] = useState(false);
   const [edits, setEdits] = useState<Record<string, BuildingAptSizeRow>>(
     Object.fromEntries(building.apartment_sizes.map(a => [a.id, { ...a }]))
@@ -101,7 +102,14 @@ function BuildingCard({ payeeId, building, onAddApt, onSaveApt, onUpdateBuilding
           <LayoutList className="h-3.5 w-3.5" />
           {building.apartment_sizes.length}
         </span>
-        <ClipboardCheck className="h-4 w-4 text-blue-400 shrink-0" />
+        <button
+          type="button"
+          onClick={() => navigate(`/admin/survey/${building.id}`)}
+          className="p-1 rounded-lg hover:bg-blue-50 transition-colors"
+          title="View survey"
+        >
+          <ClipboardCheck className="h-4 w-4 text-blue-400" />
+        </button>
         <button
           type="button"
           onClick={() => setUnitsOpen(o => !o)}
