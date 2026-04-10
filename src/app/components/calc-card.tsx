@@ -75,7 +75,6 @@ export interface QuickListProps<T extends QuickListItem = QuickListItem> {
   /** Optional lucide icon node rendered in the header badge */
   icon?: React.ReactNode;
   /** Background colour of the icon badge (default: #f3f4f6) */
-  iconBg?: string;
   /** Icon / text colour inside the badge (default: var(--foreground)) */
   iconColor?: string;
 }
@@ -112,7 +111,6 @@ export const QuickList = memo(function QuickList<T extends QuickListItem = Quick
   emptyText = 'No results found.',
   title = 'Quick List',
   icon,
-  iconBg = '#f3f4f6',
   iconColor = 'var(--foreground)',
 }: QuickListProps<T>) {
   const defaultSortCol = initialSortCol !== undefined ? initialSortCol : (columns[0]?.key ?? null);

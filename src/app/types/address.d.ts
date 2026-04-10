@@ -8,6 +8,7 @@ export interface NominatimAddress {
   state?: string;
   postcode?: string;
   country_code?: string;
+  [key: string]: string | undefined;
 }
 
 export interface NominatimResult {

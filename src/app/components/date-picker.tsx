@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/components/ui/utils";
-import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
@@ -19,7 +18,6 @@ interface DatePickerProps {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
-  yearRange?: number;
 }
 
 export function DatePicker({ 
@@ -28,7 +26,6 @@ export function DatePicker({
   placeholder = "", 
   className, 
   disabled = false,
-  yearRange = 12
 }: DatePickerProps) {
   const [open, setOpen] = useState(false);
 

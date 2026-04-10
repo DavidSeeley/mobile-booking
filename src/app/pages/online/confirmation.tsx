@@ -27,7 +27,8 @@ import {
 import logoImage from '../../../assets/BookingLogo.png';
 import { DetailCard } from '@/components/detail-card';
 import { FloatingLabelInput } from '@/components/floating-label-input';
-import { createSalesOrder, type SalesOrderSuccessResponse, validateSalesOrderData, formatApiError, buildSalesOrderPayload } from '../../../api/salesOrderApi';
+import { createSalesOrder, validateSalesOrderData, formatApiError, buildSalesOrderPayload } from '../../../api/salesOrderApi';
+import type { SalesOrderSuccessResponse } from '../../../api/types';
 import { SalesOrderApiError } from '../../../api/types';
 import { loadAdminVars } from '@/mocks/AdminVar';
 import { useRoomSizes } from '@/hooks/useRoomSizes';
