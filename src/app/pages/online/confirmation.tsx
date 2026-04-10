@@ -742,16 +742,16 @@ export default function Confirmation() {
                         <Package className="h-4 w-4 text-violet-500 flex-shrink-0" />
                         <p className="text-sm text-gray-900 font-bold">Estimated inventory</p>
                       </div>
-                      <div className="flex gap-5">
-                        <div className="flex flex-col">
+                      <div className="flex justify-between">
+                        <div className="flex flex-col items-center flex-1">
                           <span className="text-xs text-gray-900 text-center">Furniture</span>
                           <span className="text-xs text-gray-800 text-center">{furnitureScore}</span>
                         </div>
-                        <div className="flex flex-col">
+                        <div className="flex flex-col items-center flex-1">
                           <span className="text-xs text-gray-900 text-center">Boxes</span>
                           <span className="text-xs text-gray-800 text-center">{boxCount}</span>
                         </div>
-                        <div className="flex flex-col">
+                        <div className="flex flex-col items-center flex-1">
                           <span className="text-xs text-gray-900 text-center">Unboxed</span>
                           <span className="text-xs text-gray-800 text-center">{miscScore}</span>
                         </div>
