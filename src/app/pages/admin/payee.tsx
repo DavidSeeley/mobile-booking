@@ -345,6 +345,10 @@ function BuildingCard({ payeeId, building, onAddApt, onSaveApt, onUpdateBuilding
       {/* Units accordion */}
       {unitsOpen && (
         <div className="border-t border-gray-100">
+          <div className="px-4 py-2 bg-white flex items-center gap-2 border-b border-gray-100">
+            <LayoutList className="h-4 w-4 text-orange-400" />
+            <span className="text-sm font-bold text-gray-800">Building Units</span>
+          </div>
           <div className="admin-table-header grid grid-cols-[1fr_100px_80px_36px] px-4 py-2">
             <span className="text-xs font-bold text-white">Unit Type</span>
             <span className="text-xs font-bold text-white text-center">Allowance</span>
