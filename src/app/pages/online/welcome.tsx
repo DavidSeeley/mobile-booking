@@ -30,7 +30,7 @@ const formatDate = (date: Date) =>
 export default function Welcome() {
   const navigate = useNavigate();
   useAppStarted();
-  const { formData, setWelcome } = useFormData();
+  const { formData, setWelcome, setPayeeId } = useFormData();
   const { buildings, loading: buildingsLoading } = useProfile({ payeeId: formData.payeeId ?? undefined });
 
   // Filter to only the PIN-selected building
@@ -98,6 +98,9 @@ export default function Welcome() {
       return;
     }
     if (selectedAddress) {
+      // Always sync payeeId from the selected building so Confirmation shows the right payee
+      if (selectedAddress.payee_id) setPayeeId(selectedAddress.payee_id);
+
       const matched = aptSizes.find((a) => a.name === unit.trim());
       setWelcome({
         locationLabel: selectedAddress.name,
